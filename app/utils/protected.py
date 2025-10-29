@@ -32,10 +32,7 @@ def auth_required(f):
                 
             # Convert string user_id back to integer
             request.user_id = int(user_id)
-            
-          
-
-            request.user_id = user_id
+ 
             current_app.logger.debug(f"[AUTH] Authenticated user ID: {user_id}")
 
         except jwt.ExpiredSignatureError:
