@@ -1,25 +1,20 @@
 from flask import Flask
 from .extensions import db, migrate, jwt
-from .config import get_config
+# from .config import get_config
+from .routes import all_routes
 import os
 
 
 def create_app():
     app = Flask(__name__)
 
-    # Load configuration based on FLASK_ENV environment variable
-    env_name = os.getenv('FLASK_ENV', 'development')
-    config_class = get_config(env_name)
-    app.config.from_object(config_class)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budgetwise.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    for r in all_routes:
+        app.register_blueprint(r)
 
-    # Initialize extensions
+
     db.init_app(app)
     migrate.init_app(app, db)
-    jwt.init_app(app)
-
-    # Register blueprints or routes here if needed
-    from app.models import user, category, transaction
-  
-    
 
     return app

@@ -7,4 +7,4 @@ def home():
     return "Welcome to the BudgetWise Application!"
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
