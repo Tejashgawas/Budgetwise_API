@@ -19,7 +19,10 @@ def create_app():
 
     # Register blueprints or routes here if needed
     from app.models import user, category, transaction
-  
+    
+    # Register all routes
+    from app.routes import api_bp
+    app.register_blueprint(api_bp, url_prefix="/api")
     
 
     return app
