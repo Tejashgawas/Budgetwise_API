@@ -4,10 +4,11 @@ from .config import get_config
 import os
 
 
+
 def create_app():
     app = Flask(__name__)
 
-    # Load configuration based on FLASK_ENV environment variable
+    # Load configuration
     env_name = os.getenv('FLASK_ENV', 'development')
     config_class = get_config(env_name)
     app.config.from_object(config_class)
@@ -17,9 +18,12 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
 
-    # Register blueprints or routes here if needed
+    # Import models
     from app.models import user, category, transaction
-  
-    
+
+    # ✅ Register blueprints
+    from app.routes.category_routes import category_bp
+    app.register_blueprint(category_bp)
+
 
     return app
