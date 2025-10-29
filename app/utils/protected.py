@@ -28,7 +28,7 @@ def auth_required(f):
             
             if not user_id:
                 current_app.logger.warning("[AUTH] Token decoded but no 'sub' (user ID) found.")
-                return jsonify({"message": "Invalid token structure"}), 401
+                return jsonify({"message": "Not authenticated"}), 403
                 
             # Convert string user_id back to integer
             request.user_id = int(user_id)
