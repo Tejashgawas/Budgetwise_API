@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from app.services.category_service import create_category, get_all_categories, delete_category
-
 category_bp = Blueprint("categories", __name__, url_prefix="/categories")
 
 @category_bp.route("", methods=["POST"])
