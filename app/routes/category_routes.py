@@ -1,43 +1,64 @@
 from flask import Blueprint, request, jsonify
-from app.services.category_service import create_category, get_all_categories, delete_category
-category_bp = Blueprint("categories", __name__, url_prefix="/categories")
+from pydantic import ValidationError
+from app.utils.protected import auth_required
+from app.schemas.category_schema import CategoryCreateSchema, CategoryResponseSchema
+from app.services.category_service import CategoryService
 
-@category_bp.route("", methods=["POST"])
-def add_category():
-    data = request.get_json()
-    name = data.get("name")
-    type = data.get("type")  # Must be 'income' or 'expense'
+category_bp = Blueprint("categories", __name__)
 
-    if not name or not type:
-        return jsonify({"error": "Both 'name' and 'type' are required"}), 400
+# -----------------------------
+# Create Category
+# -----------------------------
+@category_bp.route("/", methods=["POST"])
+@auth_required
+def create_category():
+    try:
+        data = request.get_json()
+        validated = CategoryCreateSchema(**data)
 
-    if type not in ["income", "expense"]:
-        return jsonify({"error": "Invalid type. Must be 'income' or 'expense'."}), 400
+        category = CategoryService.create_category(
+            name=validated.name, type=validated.type
+        )
 
-    category, error = create_category(name, type)
-    if error:
-        return jsonify({"error": error}), 400
-
-    return jsonify({
-        "id": category.id,
-        "name": category.name,
-        "type": category.type
-    }), 201
-
-
-@category_bp.route("", methods=["GET"])
-def list_categories():
-    categories = get_all_categories()
-    return jsonify([
-        {"id": cat.id, "name": cat.name, "type": cat.type}
-        for cat in categories
-    ]), 200
+        return (
+            jsonify(
+                {"message": "Category created successfully",
+                 "category": CategoryResponseSchema.model_validate(category).model_dump()}
+            ),
+            201,
+        )
+    except ValidationError as e:
+        return jsonify({"errors": e.errors()}), 400
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
 
 
+# -----------------------------
+# Get All Categories
+# -----------------------------
+@category_bp.route("/", methods=["GET"])
+@auth_required
+def get_all_categories():
+    try:
+        categories = CategoryService.get_all_categories()
+        response = [CategoryResponseSchema.model_validate(c).model_dump() for c in categories]
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+
+
+# -----------------------------
+# Delete Category
+# -----------------------------
 @category_bp.route("/<int:category_id>", methods=["DELETE"])
-def remove_category(category_id):
-    category, error = delete_category(category_id)
-    if error:
-        return jsonify({"error": error}), 404
-
-    return jsonify({"message": "Category deleted successfully"}), 200
+@auth_required
+def delete_category(category_id):
+    try:
+        CategoryService.delete_category(category_id)
+        return jsonify({"message": "Category deleted successfully"}), 200
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
