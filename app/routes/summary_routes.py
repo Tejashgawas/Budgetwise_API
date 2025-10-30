@@ -174,18 +174,20 @@ def summary_by_period():
       period_type = month | year
       period_value = e.g., 2025-10 or 2025
       type = income | expense | all
+      start_date = date
+      end_date = date
     """
     # user_id = request.user_id
     user_id = 1
     period_type = request.args.get("period_type", "month")
     period_value = request.args.get("period_value")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
     tx_type = request.args.get("type")
     print(user_id, period_type, period_value, tx_type)
 
-    result = get_summary_by_period(user_id, period_type, period_value, tx_type)
+    result = get_summary_by_period(user_id, period_type, period_value, tx_type, start_date, end_date)
     return jsonify(result.model_dump())
-
-
 
 
 # 3️⃣ Summary by Subcategory
@@ -194,7 +196,7 @@ def summary_by_period():
 def summary_by_subcategory():
     """
     Query params:
-       subcategory_name
+      subcategory_name
       month / year / start_date / end_date
       type = income | expense
     """

@@ -12,7 +12,8 @@ class SummaryResponse(BaseModel):
     period: Optional[str] = Field(None, description="Month or Year if applicable")
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-   
+    transactions_count: int = Field(..., ge=0, description="Total number of transactions")
+
     # summary: Dict[str, List[CategorySummary]] = Field(
     #     default_factory=dict,
     #     description="Summary grouped by category type (income, expense)"
