@@ -7,7 +7,7 @@ from decimal import Decimal
 
 summary_bp = Blueprint('summary', __name__)
 
-@summary_bp.route('/summary', methods=['GET'])
+@summary_bp.route('/', methods=['GET'])
 def get_summary():
     return jsonify({
         "message": "Success",
@@ -15,7 +15,7 @@ def get_summary():
 
 
 ##Dummy endpoint to add data
-@summary_bp.route('/summary/add', methods=['POST'])
+@summary_bp.route('/add', methods=['POST'])
 def add_transaction():
     data = request.get_json()
     print(data)
@@ -61,7 +61,7 @@ def add_transaction():
     }), 201
 
 ##Dummy endpoint to get data
-@summary_bp.route("/summary/get", methods=["GET"])
+@summary_bp.route("/get", methods=["GET"])
 def get_all_transactions():
 
     # Join with Category to get category name & type
@@ -86,7 +86,7 @@ def get_all_transactions():
     }), 200
 
 
-@summary_bp.route('/summary/monthly', methods=['GET'])
+@summary_bp.route('/monthly', methods=['GET'])
 def monthly_summary():
     # ✅ Get query parameter
     month = request.args.get('month')  # e.g., "2025-10"
@@ -126,7 +126,7 @@ def monthly_summary():
     }), 200
 
 
-@summary_bp.route('/summary/category', methods=['GET'])
+@summary_bp.route('/category', methods=['GET'])
 def category_summary():
     # ✅ Get optional query parameters
     start_date = request.args.get('start_date')
@@ -160,7 +160,7 @@ def category_summary():
     }), 200
 
 
-@summary_bp.route('/summary/daterange', methods=['GET'])
+@summary_bp.route('/daterange', methods=['GET'])
 def summary_daterange():
     # ✅ Get query parameters
     start_date = request.args.get('start_date')

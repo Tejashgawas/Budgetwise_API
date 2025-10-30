@@ -1,6 +1,6 @@
 from app.extensions import db
 from app.models.user import User
-from utils.security import hash_password, verify_password,create_jwt_token
+from app.utils.security import hash_password, verify_password,create_jwt_token
 
 class AuthService:
     """Handles user registration and login."""
@@ -41,7 +41,7 @@ class AuthService:
             raise ValueError("Invalid username or password.")
         
         token = create_jwt_token(user.id)
-
+        
         return {
             "message": "Login successful.",
             "token": token,
@@ -51,6 +51,29 @@ class AuthService:
                 "email": user.email
             }
         },200
+    
+    @staticmethod
+    def get_user(user_id: int):
+        """Fetch user details by ID (usually from decoded JWT)."""
+        user = User.query.get(user_id)
+        if not user:
+            raise ValueError("User not found.")
+
+        if user.created_at:
+            formatted_date = user.created_at.strftime("%B %d, %Y at %I:%M %p")  # e.g., "October 29, 2025 at 10:23 AM"
+        else:
+            formatted_date = None
+
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "created_at": formatted_date
+        }, 200
+
+
+
+
 
     @staticmethod
     def logout():
