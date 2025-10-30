@@ -1,12 +1,12 @@
 from flask import Blueprint, jsonify, request
 from app.models import Category, Transaction, User
 from app.schemas.transaction_schemas import TransactionCreateSchema
+from app.services.transaction_service import create_transaction
 from app.utils.protected import auth_required
 from app.extensions import db
 from app.schemas.summary_schema import SummaryResponse
 from app.services.summary_services import (
     get_summary_by_period,
-    get_summary_by_date_range,
     get_summary_by_subcategory
 )
 from app.schemas.summary_schema import SummaryResponse
@@ -27,56 +27,14 @@ def test():
 @summary_bp.route('/add', methods=['POST'])
 def add_transaction():
     try:
-        data = TransactionCreateSchema(**request.get_json())
+        payload = request.get_json() or {}
+        data = TransactionCreateSchema(**payload)
+        user_id = request.user_id
+        transaction_resp = create_transaction(user_id,data)  # returns TransactionResponseSchema
+        return jsonify(transaction_resp.dict()), 201
     except ValidationError as e:
         return jsonify({"errors": e.errors()}), 400
 
-    # Determine category
-    category = None
-    if data.category_id:
-        category = Category.query.get(data.category_id)
-
-    if not category and data.category_name:
-        category = Category.query.filter_by(name=data.category_name).first()
-
-    if not category and data.category_name:
-        try:
-            category = Category(name=data.category_name, type=data.type)
-            db.session.add(category)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            category = Category.query.filter_by(name=data.category_name).first()
-            if not category:
-                return jsonify({"error": "Could not create category"}), 500
-
-    if not category:
-        return jsonify({"error": "Category not found and no name provided"}), 400
-
-    tx_date = data.date or datetime.utcnow().date()
-    transaction = Transaction(
-        user_id=1,
-        category_id=category.id,
-        amount=data.amount,
-        type=data.type,
-        description=data.description or "",
-        created_date=tx_date
-    )
-
-    db.session.add(transaction)
-    db.session.commit()
-
-    return jsonify({
-        "message": "Transaction added successfully",
-        "transaction": {
-            "id": transaction.id,
-            "type": transaction.type,
-            "amount": str(transaction.amount),
-            "category": category.name,
-            "description": transaction.description,
-            "date": str(transaction.created_date)
-        }
-    }), 201
 
 ##Dummy endpoint to get data
 @summary_bp.route("/get", methods=["GET"])
@@ -228,23 +186,6 @@ def summary_by_period():
     return jsonify(result.model_dump())
 
 
-# 2️⃣ Summary by Date Range
-@summary_bp.route("/range", methods=["GET"])
-# @auth_required
-def summary_by_range():
-    """
-    Query params:
-      start_date=YYYY-MM-DD
-      end_date=YYYY-MM-DD
-      type = income | expense | all
-    """
-    user_id = request.user_id
-    start = request.args.get("start_date")
-    end = request.args.get("end_date")
-    tx_type = request.args.get("type")
-
-    result = get_summary_by_date_range(user_id, start, end, tx_type)
-    return jsonify(SummaryResponse(**result).model_dump())
 
 
 # 3️⃣ Summary by Subcategory
@@ -253,7 +194,7 @@ def summary_by_range():
 def summary_by_subcategory():
     """
     Query params:
-      subcategory_id / subcategory_name
+       subcategory_name
       month / year / start_date / end_date
       type = income | expense
     """

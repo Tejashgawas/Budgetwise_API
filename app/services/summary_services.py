@@ -6,102 +6,92 @@ from app.schemas.transaction_schemas import TransactionFilterSchema
 from app.schemas.summary_schema import CategorySummary, SummaryResponse
 from datetime import date
 from typing import Dict, List, Optional
+from datetime import datetime
 
 # ---------------- Summary by Period ----------------
-def get_summary_by_period(user_id: int, period_type: str, period_value: Optional[str], tx_type: Optional[str] = None):
-    query = db.session.query(
-        Category.name.label("category"),
-        Category.type.label("category_type"),
-        func.sum(Transaction.amount).label("total")
-    ).join(Category).filter(Transaction.user_id == user_id)
+from datetime import datetime, date
+import calendar
+from sqlalchemy import func, extract
+from app.models import Transaction, Category
+from app.extensions import db
+from app.schemas.summary_schema import SummaryResponse, CategorySummary
 
-    # Filter by period
-    start_date = None
-    end_date = None
-    if period_type == "month" and period_value:
+
+def get_summary_by_period(
+    user_id: int,
+    period_type: Optional[str] = None,
+    period_value: Optional[str] = None,
+    tx_type: Optional[str] = None
+):
+    # 🧠 Default period handling
+    if not period_type:
+        period_type = "month"
+    if not period_value:
+        period_value = datetime.now().strftime("%Y-%m")
+
+    query = (
+        db.session.query(
+            Category.name.label("category_name"),
+            Category.type.label("category_type"),
+            func.sum(Transaction.amount).label("total")
+        )
+        .join(Category)
+        .filter(Transaction.user_id == user_id)
+    )
+
+    # 🗓️ Filter by period (month or year)
+    start_date, end_date = None, None
+
+    if period_type == "month":
         year, month = map(int, period_value.split("-"))
         query = query.filter(
             extract("year", Transaction.created_date) == year,
             extract("month", Transaction.created_date) == month
         )
-        # For display in schema, optional: start/end date of month
         start_date = date(year, month, 1)
-        # end_date = last day of month (simplified)
-        import calendar
         end_date = date(year, month, calendar.monthrange(year, month)[1])
-    elif period_type == "year" and period_value:
+
+    elif period_type == "year":
         year = int(period_value)
         query = query.filter(extract("year", Transaction.created_date) == year)
         start_date = date(year, 1, 1)
         end_date = date(year, 12, 31)
 
-    # Filter by type if provided
+    # 💰 Filter by transaction type if provided
     if tx_type in ("income", "expense"):
         query = query.filter(Transaction.type == tx_type)
 
     results = query.group_by(Category.id, Category.name, Category.type).all()
-    print("Fetched Data=>",results)
-    # Build summary dict with CategorySummary objects
-    summary: Dict[str, List[CategorySummary]] = {}
-    for r in results:
-        summary.setdefault(r.category_type  , []).append(
-            CategorySummary(category=r.category, total=float(r.total))
-        )
 
-        response_data = {
+    # 📊 Build category summaries and totals
+    summary: Dict[str, list[CategorySummary]] = {"income": [], "expense": []}
+    total_income = 0.0
+    total_expense = 0.0
+
+    for r in results:
+        cat_summary = CategorySummary(category=r.category_name, total=float(r.total))
+        if r.category_type == "income":
+            summary["income"].append(cat_summary)
+            total_income += float(r.total)
+        elif r.category_type == "expense":
+            summary["expense"].append(cat_summary)
+            total_expense += float(r.total)
+
+    # 🧾 Construct response data dictionary
+    response_data = {
         "type": tx_type or "all",
-        "summary": summary
+        "period_type": period_type,
+        "period": period_value,
+        "start_date": start_date,
+        "end_date": end_date,
+        "summary": summary,
+        "total_income": total_income,
+        "total_expense": total_expense,
     }
 
-    # 2️⃣ Add optional fields only if they exist
-    if period_type:
-        response_data["period_type"] = period_type
-    if period_value:
-        response_data["period"] = period_value
-    if start_date and end_date:
-        response_data["start_date"] = start_date
-        response_data["end_date"] = end_date
-    # subcategory is not applicable for period summary
-
-    # 3️⃣ Create the Pydantic object
+    # ✅ Return as Pydantic object
     summary_response = SummaryResponse(**response_data)
-
     return summary_response
-
-
-# ---------------- Summary by Date Range ----------------
-def get_summary_by_date_range(user_id: int, filter_schema: TransactionFilterSchema):
-    tx_type = filter_schema.type
-    start = filter_schema.start_date
-    end = filter_schema.end_date
-
-    query = db.session.query(
-        Category.name.label("category"),
-        Category.type.label("category_type"),
-        func.sum(Transaction.amount).label("total")
-    ).join(Category).filter(Transaction.user_id == user_id)
-
-    if start and end:
-        query = query.filter(Transaction.created_date.between(start, end))
-
-    if tx_type in ("income", "expense"):
-        query = query.filter(Transaction.type == tx_type)
-
-    results = query.group_by(Category.id, Category.name, Category.type).all()
-
-    summary = {}
-    for r in results:
-        summary.setdefault(r.category_type, []).append({
-            "category": r.category,
-            "total": float(r.total)
-        })
-
-    return {
-        "type": tx_type or "all",
-        "start_date": start,
-        "end_date": end,
-        "summary": summary
-    }
 
 # ---------------- Summary by Subcategory ----------------
 def get_summary_by_subcategory(user_id: int, filter_schema: TransactionFilterSchema, month: Optional[int] = None, year: Optional[int] = None):
