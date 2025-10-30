@@ -25,7 +25,7 @@ def create_transaction(user_id: int, transaction_data: TransactionCreateSchema):
         ).first()
         if not category:
             category = Category(
-                name=transaction_data.category_name, type=transaction_data.type
+                name=transaction_data.category_name, type=transaction_data.type,user_id=user_id
             )
             db.session.add(category)
             db.session.commit()

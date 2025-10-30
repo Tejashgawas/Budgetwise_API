@@ -26,9 +26,6 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix="/api")
     
 
-    # ✅ Register blueprints
-    from app.routes.category_routes import category_bp
-    app.register_blueprint(category_bp)
 
 
     return app
