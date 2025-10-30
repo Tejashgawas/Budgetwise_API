@@ -72,9 +72,6 @@ class AuthService:
         }, 200
 
 
-
-
-
     @staticmethod
     def logout():
         """Handles user logout."""
