@@ -28,7 +28,7 @@ def register(email, password, username):
         response = requests.post(url, json=data)
         print(json.dumps(response.json(), indent=2))
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 
 # ----------------------------------------------------------
@@ -37,7 +37,7 @@ def register(email, password, username):
 
 @auth.command()
 @click.option('--email', prompt=True)
-@click.option('--password', prompt=True, hide_input=True)
+@click.option('--password', prompt=True, hide_input=False)
 
 def login(email, password):
     """User Login"""
@@ -46,16 +46,16 @@ def login(email, password):
     try:
         response = requests.post(url, json = data)
         res_json = response.json()
-
+        # print(response.status_code)
         if response.status_code == 200 and 'token' in res_json:
             with open(TOKEN_FILE, 'w') as f:
                 f.write(res_json['token'])
-            print('✅ logged in successfully')
+            print('logged in successfully',res_json)
         else:
-            print('❌ Login failed: ', res_json)
+            print('Login failed: ', res_json)
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 # ---------------------------------------------------------------------------------
 # Current User
