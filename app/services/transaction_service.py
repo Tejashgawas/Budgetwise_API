@@ -10,6 +10,7 @@ from app.schemas.transaction_schemas import (
 from datetime import datetime as dt_date
 from datetime import datetime
 from app.utils.protected import auth_required
+import json
 # -----------------------------
 # Create Transaction
 # -----------------------------
@@ -77,7 +78,11 @@ def get_transactions(user_id: int, filters: dict):
     if filters.get("end_date"):
         query = query.filter(Transaction.created_date <= filters["end_date"])
 
-    transactions = query.order_by(Transaction.created_date.desc()).all()
+    page = int(filters.get("page", 1))
+    per_page = int(filters.get("per_page", 10))
+    pagination = query.order_by(Transaction.created_date.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
 
     result_models = [
         TransactionResponseSchema(
@@ -93,14 +98,20 @@ def get_transactions(user_id: int, filters: dict):
             ),
             user_id=t.user_id,
         )
-        for t in transactions
+        for t in pagination.items
     ]
 
-    # Serialize list of Pydantic models to JSON array
-    json_array = "[" + ",".join([m.model_dump_json() for m in result_models]) + "]"
+    response = {
+        "page": pagination.page,
+        "per_page": pagination.per_page,
+        "total_pages": pagination.pages,
+        "total_items": pagination.total,
+        "transactions": [
+            json.loads(m.model_dump_json()) for m in result_models
+        ],
+    }
 
-    return json_array
-    # return Response(json_array, mimetype="application/json")
+    return response
 # -----------------------------
 # Get Transaction by ID
 # -----------------------------
