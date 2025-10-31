@@ -1,3 +1,4 @@
+from flask import Response
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.category import Category
@@ -5,8 +6,8 @@ from app.schemas.transaction_schemas import (
     TransactionCreateSchema,
     TransactionUpdateSchema,
     TransactionResponseSchema,
-    TransactionFilterSchema,
 )
+from datetime import datetime as dt_date
 from datetime import datetime
 from app.utils.protected import auth_required
 # -----------------------------
@@ -53,7 +54,11 @@ def create_transaction(user_id: int, transaction_data: TransactionCreateSchema):
         type=transaction.type,
         category=category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     )
 
@@ -74,19 +79,28 @@ def get_transactions(user_id: int, filters: dict):
 
     transactions = query.order_by(Transaction.created_date.desc()).all()
 
-    return [
+    result_models = [
         TransactionResponseSchema(
             id=t.id,
             amount=t.amount,
             type=t.type,
             category=t.category.name,
             description=t.description,
-            date=t.created_date,
+            date=(
+            t.created_date.strftime("%Y-%m-%d")
+            if isinstance(t.created_date, (dt_date, datetime))
+            else str(t.created_date)
+            ),
             user_id=t.user_id,
         )
         for t in transactions
     ]
 
+    # Serialize list of Pydantic models to JSON array
+    json_array = "[" + ",".join([m.model_dump_json() for m in result_models]) + "]"
+
+    return json_array
+    # return Response(json_array, mimetype="application/json")
 # -----------------------------
 # Get Transaction by ID
 # -----------------------------
@@ -103,7 +117,11 @@ def get_transaction_by_id(transaction_id: int, user_id: int):
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     )
 
@@ -136,7 +154,11 @@ def update_transaction(transaction_id: int, data: TransactionUpdateSchema, user_
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     
     )

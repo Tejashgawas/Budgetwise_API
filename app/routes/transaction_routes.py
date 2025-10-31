@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, Response, request, jsonify
 from app.services.transaction_service import (
     create_transaction,
     get_transactions,
@@ -32,7 +32,7 @@ def create_transaction_route():
         data = TransactionCreateSchema(**payload)
         user_id = request.user_id
         transaction_resp = create_transaction(user_id,data)  # returns TransactionResponseSchema
-        return jsonify(transaction_resp.dict()), 201
+        return Response(transaction_resp.model_dump_json(), mimetype="application/json", status=201)
     except ValidationError as ve:
         # Simplify Pydantic validation messages
         errors = [
@@ -62,7 +62,9 @@ def get_all_transactions_route():
         filters = filter_schema.dict(exclude_none=True)
 
         transactions = get_transactions(user_id, filters)  # returns list[TransactionResponseSchema]
-        return jsonify([t.dict() for t in transactions]), 200
+        
+        return Response(transactions, mimetype="application/json", status=200)
+    
     except ValidationError as ve:
          # Simplify Pydantic validation messages
         errors = [
@@ -89,7 +91,7 @@ def get_transaction_by_id_route(transaction_id):
     transaction = get_transaction_by_id(transaction_id, user_id)  # TransactionResponseSchema | None
     if not transaction:
         return jsonify({"message": "Transaction not found"}), 404
-    return jsonify(transaction.dict()), 200
+    return Response(transaction.model_dump_json(), mimetype="application/json", status=200)
 
 # --------------------------------------------
 # UPDATE Transaction
@@ -104,7 +106,7 @@ def update_transaction_route(transaction_id):
         transaction = update_transaction(transaction_id, data, user_id)  # TransactionResponseSchema | None
         if not transaction:
             return jsonify({"message": "Transaction not found"}), 404
-        return jsonify(transaction.dict()), 200
+        return Response(transaction.model_dump_json(), mimetype="application/json", status=200)
     except ValidationError as ve:
          # Simplify Pydantic validation messages
         errors = [
