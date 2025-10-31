@@ -41,3 +41,5 @@ class TransactionFilterSchema(BaseModel):
     category: Optional[str] = None
     start_date: Optional[dt_date] = None
     end_date: Optional[dt_date] = None
+    page: Optional[int] = 1
+    per_page: Optional[int] = 10

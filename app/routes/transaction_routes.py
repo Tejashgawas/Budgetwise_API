@@ -63,7 +63,7 @@ def get_all_transactions_route():
 
         transactions = get_transactions(user_id, filters)  # returns list[TransactionResponseSchema]
         
-        return Response(transactions, mimetype="application/json", status=200)
+        return jsonify(transactions), 200
     
     except ValidationError as ve:
          # Simplify Pydantic validation messages
