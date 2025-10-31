@@ -11,9 +11,6 @@ from app.services.summary_services import (
 from pydantic import ValidationError
 from sqlalchemy import func
 
-
-
-
 summary_bp = Blueprint('summary', __name__)
 
 @summary_bp.route('/', methods=['GET'])
