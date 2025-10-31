@@ -8,6 +8,7 @@ from app.services.transaction_service import create_transaction
 from decimal import Decimal
 from datetime import date, timedelta
 import random
+from app.utils.security import hash_password
 
 def seed_users():
     users_data = [
@@ -27,7 +28,8 @@ def seed_users():
     for u in users_data:
         existing_user = User.query.filter_by(email=u["email"]).first()
         if not existing_user:
-            user = User(username=u["username"], email=u["email"], password_hash="hashed_demo_password")
+            hash = hash_password("password123")
+            user = User(username=u["username"], email=u["email"], password_hash=hash)
             db.session.add(user)
             users.append(user)
     db.session.commit()
