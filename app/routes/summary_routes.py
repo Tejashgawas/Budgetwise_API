@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 from app.models import Category, Transaction, User
 from app.schemas.transaction_schemas import TransactionCreateSchema
 from app.services.transaction_service import create_transaction
@@ -187,29 +187,32 @@ def summary_by_period():
     print(user_id, period_type, period_value, tx_type)
 
     result = get_summary_by_period(user_id, period_type, period_value, tx_type, start_date, end_date)
-    return jsonify(result.model_dump())
+    return Response(result.model_dump_json(), mimetype="application/json")
 
 
 # 3️⃣ Summary by Subcategory
+# @auth_required
 @summary_bp.route("/subcategory", methods=["GET"])
 # @auth_required
 def summary_by_subcategory():
     """
     Query params:
-      subcategory_name
+      subcategory (Category.name)
       month / year / start_date / end_date
       type = income | expense
     """
-    user_id = request.user_id
-    filters = {
-        "subcategory_id": request.args.get("subcategory_id"),
-        "subcategory_name": request.args.get("subcategory_name"),
-        "month": request.args.get("month"),
-        "year": request.args.get("year"),
-        "start_date": request.args.get("start_date"),
-        "end_date": request.args.get("end_date"),
-        "type": request.args.get("type"),
-    }
+    user_id = 1
+    period_type = request.args.get("period_type", "month")
+    period_value = request.args.get("period_value")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    tx_type = request.args.get("type")
+    subcategory = request.args.get("sub")  # Category.name filter
 
-    result = get_summary_by_subcategory(user_id, filters)
-    return jsonify(SummaryResponse(**result).model_dump())
+    print(f"User: {user_id}, Period: {period_type}={period_value}, Type: {tx_type}, Subcategory: {subcategory}")
+
+
+    result = get_summary_by_subcategory(user_id, period_type, period_value, tx_type, start_date, end_date,subcategory)
+    return Response(result.model_dump_json(), mimetype="application/json")
+
+
