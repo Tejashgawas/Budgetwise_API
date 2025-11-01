@@ -76,6 +76,6 @@ def print_response(response):
     Display API responses nicely in the CLI.
     """
     if "error" in response:
-        print(f"❌ Error: {response['error']}")
+        print(f" Error: {response['error']}")
     else:
         print(json.dumps(response, indent=2))
