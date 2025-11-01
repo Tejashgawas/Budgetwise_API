@@ -1,3 +1,4 @@
+from flask import Response
 from app.extensions import db
 from app.models.transaction import Transaction
 from app.models.category import Category
@@ -5,10 +6,11 @@ from app.schemas.transaction_schemas import (
     TransactionCreateSchema,
     TransactionUpdateSchema,
     TransactionResponseSchema,
-    TransactionFilterSchema,
 )
+from datetime import datetime as dt_date
 from datetime import datetime
 from app.utils.protected import auth_required
+import json
 # -----------------------------
 # Create Transaction
 # -----------------------------
@@ -53,7 +55,11 @@ def create_transaction(user_id: int, transaction_data: TransactionCreateSchema):
         type=transaction.type,
         category=category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     )
 
@@ -72,21 +78,40 @@ def get_transactions(user_id: int, filters: dict):
     if filters.get("end_date"):
         query = query.filter(Transaction.created_date <= filters["end_date"])
 
-    transactions = query.order_by(Transaction.created_date.desc()).all()
+    page = int(filters.get("page", 1))
+    per_page = int(filters.get("per_page", 10))
+    pagination = query.order_by(Transaction.created_date.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
 
-    return [
+    result_models = [
         TransactionResponseSchema(
             id=t.id,
             amount=t.amount,
             type=t.type,
             category=t.category.name,
             description=t.description,
-            date=t.created_date,
+            date=(
+            t.created_date.strftime("%Y-%m-%d")
+            if isinstance(t.created_date, (dt_date, datetime))
+            else str(t.created_date)
+            ),
             user_id=t.user_id,
         )
-        for t in transactions
+        for t in pagination.items
     ]
 
+    response = {
+        "page": pagination.page,
+        "per_page": pagination.per_page,
+        "total_pages": pagination.pages,
+        "total_items": pagination.total,
+        "transactions": [
+            json.loads(m.model_dump_json()) for m in result_models
+        ],
+    }
+
+    return response
 # -----------------------------
 # Get Transaction by ID
 # -----------------------------
@@ -103,7 +128,11 @@ def get_transaction_by_id(transaction_id: int, user_id: int):
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     )
 
@@ -136,7 +165,11 @@ def update_transaction(transaction_id: int, data: TransactionUpdateSchema, user_
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
-        date=transaction.created_date,
+                    date=(
+            transaction.created_date.strftime("%Y-%m-%d")
+            if isinstance(transaction.created_date, (dt_date, datetime))
+            else str(transaction.created_date)
+            ),
         user_id=transaction.user_id,
     
     )

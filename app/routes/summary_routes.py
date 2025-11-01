@@ -65,7 +65,7 @@ def summary_by_period():
     tx_type = request.args.get("type")
 
     result = get_summary_by_period(user_id, period_type, period_value, tx_type, start_date, end_date)
-    return Response(result.model_dump_json(), mimetype="application/json")
+    return Response(result.model_dump_json(), mimetype="application/json", status=200)
 
 
 @summary_bp.route("/subcategory", methods=["GET"])
@@ -80,4 +80,4 @@ def summary_by_subcategory():
     subcategory = request.args.get("sub")
 
     result = get_summary_by_subcategory(user_id, period_type, period_value, tx_type, start_date, end_date, subcategory)
-    return Response(result.model_dump_json(), mimetype="application/json")
+    return Response(result.model_dump_json(), mimetype="application/json", status=200)

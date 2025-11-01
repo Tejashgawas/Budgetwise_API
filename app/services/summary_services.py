@@ -5,7 +5,7 @@ from sqlalchemy import func, extract
 from app.schemas.transaction_schemas import TransactionFilterSchema
 from app.schemas.summary_schema import CategorySummary, SummaryResponse, SummaryResponseSubCategory
 from datetime import date, datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import calendar
 
 def get_summary_by_period(
