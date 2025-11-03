@@ -99,7 +99,11 @@ def list(type, category, start_date, end_date):
         
         print("\n Transaction")
         print("-" * 50)
-        for t in res_json:
+        transactions = res_json.get("transactions", [])
+        if not transactions:
+            print("No transactions found.")
+            return
+        for t in transactions:
             print(f"ID: {t['id']}")
             print(f"Amount: {t['amount']}")
             print(f"Type: {t['type']}")
@@ -140,6 +144,7 @@ def get_transaction(transaction_id):
             return
         
         res_json = response.json()
+        
 
         if not res_json:
             print('No transaction found')

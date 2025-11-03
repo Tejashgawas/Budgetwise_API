@@ -17,7 +17,7 @@ def summary():
 @click.option('--start_date',prompt='start_date (YYYY-MM-DD or leave blank)',default='',help='filter by start date')
 @click.option('--end_date',prompt='end_date (YYYY-MM-DD or leave blank)',default='',help='filter by end date')
 
-def summarybyperiod(period_type,period_value,txt_type,start_date,end_date):
+def period(period_type,period_value,txt_type,start_date,end_date):
 
     if not os.path.exists(TOKEN_FILE):
         print('No user is logged in')
@@ -58,7 +58,7 @@ def summarybyperiod(period_type,period_value,txt_type,start_date,end_date):
 @click.option('--end_date',prompt='end_date (YYYY-MM-DD or leave blank)',default='',help='filter by end date')
 @click.option('--subcategory',prompt='subcategory or leave blank', default='',help='filter by category name')
 
-def summarybysubcategory(period_type,period_value,txt_type,start_date,end_date,subcategory):
+def subcategory(period_type,period_value,txt_type,start_date,end_date,subcategory):
 
     if not os.path.exists(TOKEN_FILE):
         print('No user is logged in')
