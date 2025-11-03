@@ -60,6 +60,25 @@ def get_summary_by_period(
 
     if tx_type in ("income", "expense"):
         query = query.filter(Transaction.type == tx_type)
+    
+      # --- Transaction Count Query ---
+    count_query = db.session.query(func.count(Transaction.id)).join(Category).filter(Transaction.user_id == user_id)
+
+    if start_date and end_date:
+        count_query = count_query.filter(Transaction.created_date.between(range_start, range_end))
+    else:
+        if period_type == "month":
+            count_query = count_query.filter(
+                extract("year", Transaction.created_date) == year,
+                extract("month", Transaction.created_date) == month
+            )
+        elif period_type == "year":
+            count_query = count_query.filter(extract("year", Transaction.created_date) == year)
+
+    if tx_type in ("income", "expense"):
+        count_query = count_query.filter(Transaction.type == tx_type)
+
+    transaction_count = count_query.scalar() or 0
 
     results = query.group_by(Category.id, Category.name, Category.type).all()
 
@@ -81,7 +100,7 @@ def get_summary_by_period(
         "period": period_value,
         "start_date": range_start,
         "end_date": range_end,
-        "transactions_count": len(results),
+        "transactions_count": transaction_count,
         "total_income": total_income,
         "total_expense": total_expense,
     }
@@ -143,6 +162,24 @@ def get_summary_by_subcategory(
 
     if tx_type in ("income", "expense"):
         query = query.filter(Transaction.type == tx_type)
+    
+    count_query = db.session.query(func.count(Transaction.id)).join(Category).filter(Transaction.user_id == user_id)
+
+    if start_date and end_date:
+        count_query = count_query.filter(Transaction.created_date.between(range_start, range_end))
+    else:
+        if period_type == "month":
+            count_query = count_query.filter(
+                extract("year", Transaction.created_date) == year,
+                extract("month", Transaction.created_date) == month
+            )
+        elif period_type == "year":
+            count_query = count_query.filter(extract("year", Transaction.created_date) == year)
+
+    if tx_type in ("income", "expense"):
+        count_query = count_query.filter(Transaction.type == tx_type)
+
+    transaction_count = count_query.scalar() or 0
 
     results = query.group_by(Category.id, Category.name, Category.type).all()
 
@@ -167,7 +204,7 @@ def get_summary_by_subcategory(
         "period": period_value,
         "start_date": range_start,
         "end_date": range_end,
-        "transactions_count": len(results),
+        "transactions_count": transaction_count,
         "total_income": total_income,
         "total_expense": total_expense,
         "summary": summary,
