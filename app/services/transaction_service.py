@@ -87,7 +87,7 @@ def get_transactions(user_id: int, filters: dict):
     result_models = [
         TransactionResponseSchema(
             id=t.id,
-            amount=t.amount,
+            amount=round(float(t.amount), 2),
             type=t.type,
             category=t.category.name,
             description=t.description,
@@ -124,7 +124,7 @@ def get_transaction_by_id(transaction_id: int, user_id: int):
 
     return TransactionResponseSchema(
         id=transaction.id,
-        amount=transaction.amount,
+        amount=round(float(transaction.amount), 2),
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
@@ -148,7 +148,7 @@ def update_transaction(transaction_id: int, data: TransactionUpdateSchema, user_
         return None
 
     if data.amount is not None:
-        transaction.amount = data.amount
+        transaction.amount = round(float(data.amount), 2),
     if data.description is not None:
         transaction.description = data.description
     if data.category_id is not None:
@@ -161,7 +161,7 @@ def update_transaction(transaction_id: int, data: TransactionUpdateSchema, user_
 
     return TransactionResponseSchema(
         id=transaction.id,
-        amount=transaction.amount,
+        amount=round(float(transaction.amount), 2),
         type=transaction.type,
         category=transaction.category.name,
         description=transaction.description,
