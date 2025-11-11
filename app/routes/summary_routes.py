@@ -60,13 +60,15 @@ def get_all_transactions():
 def summary_by_period():
     user_id = request.user_id
     period_type = request.args.get("period_type", "month")
-    period_value = request.args.get("period_value")
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
     tx_type = request.args.get("type")
+    start = request.args.get("start")
+    end = request.args.get("end")
+    caller = request.args.get("caller")
 
-    result = SummaryService.get_summary_by_period(user_id, period_type, period_value, tx_type, start_date, end_date)
-    return Response(result.model_dump_json(), mimetype="application/json", status=200)
+    result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
+    # ✅ Flask can directly jsonify dicts
+    return jsonify(result.model_dump()), 200
+
 
 
 @summary_bp.route("/subcategory", methods=["GET"])
@@ -74,11 +76,12 @@ def summary_by_period():
 def summary_by_subcategory():
     user_id = request.user_id
     period_type = request.args.get("period_type", "month")
-    period_value = request.args.get("period_value")
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
     tx_type = request.args.get("type")
-    subcategory = request.args.get("sub")
+    start = request.args.get("start")
+    end = request.args.get("end")
+    subcategory = request.args.get("subcategory")
+    caller = request.args.get("caller")
 
-    result = SummaryService.get_summary_by_subcategory(user_id, period_type, period_value, tx_type, start_date, end_date, subcategory)
-    return Response(result.model_dump_json(), mimetype="application/json", status=200)
+    result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
+    # ✅ Flask can directly jsonify dicts
+    return jsonify(result.model_dump()), 200
