@@ -4,6 +4,7 @@ from app.routes.transaction_routes import transaction_bp
 from app.routes.category_routes import category_bp
 from app.routes.summary_routes import summary_bp
 from app.routes.csv_routes import csv_bp
+from app.routes.extras_routes import extras_bp
 
 # Master blueprint (optional grouping)
 api_bp = Blueprint("api", __name__)
@@ -19,3 +20,4 @@ api_bp.register_blueprint(transaction_bp, url_prefix="/transactions")
 api_bp.register_blueprint(category_bp, url_prefix="/categories")
 api_bp.register_blueprint(summary_bp, url_prefix="/summary")
 api_bp.register_blueprint(csv_bp, url_prefix="/csv")
+api_bp.register_blueprint(extras_bp, url_prefix="/extras")
