@@ -25,6 +25,9 @@ def create_app():
     from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix="/api")
 
+    from app.reports import reports_blueprint
+    app.register_blueprint(reports_blueprint, url_prefix="/reports")
+
 
 
     return app
