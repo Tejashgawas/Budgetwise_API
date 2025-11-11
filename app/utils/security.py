@@ -2,6 +2,7 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from flask import current_app
+from app.utils.auth_exceptions import SecretKeyMissingError, TokenInvalidError, TokenExpiredError
 
 
 # --------------------------
@@ -34,16 +35,15 @@ def create_jwt_token(user_id: int, expires_in: int = 3600) -> str:
 
     secret = current_app.config.get("SECRET_KEY")
     if not secret:
-        raise ValueError("SECRET_KEY not configured")
+        raise SecretKeyMissingError("SECRET_KEY not configured")
 
-    token = jwt.encode(payload, secret, algorithm="HS256")
-    current_app.logger.debug(f"[JWT] Created token for user {user_id}")
-
-    # Ensure always return string (not bytes)
-    if isinstance(token, bytes):
-        token = token.decode("utf-8")
-
-    return token
+    try:
+        token = jwt.encode(payload, secret, algorithm="HS256")
+        current_app.logger.debug(f"[JWT] Created token for user {user_id}")
+        return token.decode("utf-8") if isinstance(token, bytes) else token
+    except Exception as e:
+        current_app.logger.error(f"[JWT] Failed to create token: {e}")
+        raise TokenInvalidError(str(e))
 
 
 def decode_jwt_token(token: str) -> dict:
@@ -54,13 +54,13 @@ def decode_jwt_token(token: str) -> dict:
     """
     secret = current_app.config.get("SECRET_KEY")
     if not secret:
-        raise ValueError("SECRET_KEY not configured")
+        raise SecretKeyMissingError("SECRET_KEY not configured")
 
 
     try:
         decoded = jwt.decode(token, secret, algorithms=["HS256"])
-        
         return decoded
+    except jwt.ExpiredSignatureError:
+        raise TokenExpiredError("Token has expired.")
     except jwt.InvalidTokenError as e:
-        current_app.logger.error(f"[JWT] Token decode failed: {str(e)}")
-        raise
+        raise TokenInvalidError(str(e))
