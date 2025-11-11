@@ -7,6 +7,7 @@ instance/
 migrations/
 *.sqlite3
 *.db
+venv/
 
 # Ignore token and Flask environment file in the CLI folder
 app/Cli/.budgetwise_token
