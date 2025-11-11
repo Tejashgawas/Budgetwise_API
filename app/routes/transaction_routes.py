@@ -10,7 +10,6 @@ from app.services.transaction_service import (
 from app.schemas.transaction_schemas import (
     TransactionCreateSchema,
     TransactionUpdateSchema,
-    TransactionResponseSchema,
     TransactionFilterSchema
   
 )
@@ -34,18 +33,12 @@ def create_transaction_route():
         transaction_resp = create_transaction(user_id,data)  # returns TransactionResponseSchema
         return Response(transaction_resp.model_dump_json(), mimetype="application/json", status=201)
     except ValidationError as ve:
-        # Simplify Pydantic validation messages
+        # Handle invalid input data
         errors = [
-            {
-                "field": ".".join(map(str, err["loc"])),
-                "message": err["msg"]
-            }
+            {"field": ".".join(map(str, err["loc"])), "message": err["msg"]}
             for err in ve.errors()
         ]
-        return jsonify({"validation_errors": errors}), 422
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"message": "Invalid transaction input", "errors": errors}), 422
 
 
 # --------------------------------------------
@@ -127,8 +120,9 @@ def update_transaction_route(transaction_id):
 @transaction_bp.route("/<int:transaction_id>", methods=["DELETE"])
 @auth_required
 def delete_transaction_route(transaction_id):
+    """
+    Delete a transaction by ID for the authenticated user.
+    """
     user_id = request.user_id
-    deleted = delete_transaction(transaction_id, user_id)
-    if not deleted:
-        return jsonify({"message": "Transaction not found"}), 404
+    delete_transaction(transaction_id, user_id)
     return jsonify({"message": "Transaction deleted successfully"}), 200
