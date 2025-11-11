@@ -30,10 +30,7 @@ def create_category():
         )
     except ValidationError as e:
         return jsonify({"errors": e.errors()}), 400
-    except ValueError as e:
-        return jsonify({"message": str(e)}), 400
-    except Exception as e:
-        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+   
 
 # -----------------------------
 # Get All Categories (User-Specific)
@@ -41,13 +38,12 @@ def create_category():
 @category_bp.route("/", methods=["GET"])
 @auth_required
 def get_all_categories():
-    try:
-        user_id = request.user_id
-        categories = CategoryService.get_all_categories(user_id)
-        response = [CategoryResponseSchema.model_validate(c).model_dump() for c in categories]
-        return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+    
+    user_id = request.user_id
+    categories = CategoryService.get_all_categories(user_id)
+    response = [CategoryResponseSchema.model_validate(c).model_dump() for c in categories]
+    return jsonify(response), 200
+    
 
 # -----------------------------
 # Get Category (id-Specific)
@@ -55,14 +51,13 @@ def get_all_categories():
 @category_bp.route("/<int:category_id>", methods=["GET"])
 @auth_required
 def get_category(category_id):
-    try:
-        user_id = request.user_id
-        category = CategoryService.get_category(category_id,user_id)
+    
+    user_id = request.user_id
+    category = CategoryService.get_category(category_id,user_id)
         
-        response = CategoryResponseSchema.model_validate(category).model_dump()
-        return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+    response = CategoryResponseSchema.model_validate(category).model_dump()
+    return jsonify(response), 200
+    
 
 # -----------------------------
 # Update Category
@@ -91,10 +86,7 @@ def update_category(category_id):
         )
     except ValidationError as e:
         return jsonify({"errors": e.errors()}), 400
-    except ValueError as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+    
 
 # -----------------------------
 # Delete Category
@@ -102,11 +94,8 @@ def update_category(category_id):
 @category_bp.route("/<int:category_id>", methods=["DELETE"])
 @auth_required
 def delete_category(category_id):
-    try:
-        user_id = request.user_id
-        CategoryService.delete_category(category_id, user_id)
-        return jsonify({"message": "Category deleted successfully"}), 200
-    except ValueError as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": f"Unexpected error: {str(e)}"}), 500
+ 
+    user_id = request.user_id
+    CategoryService.delete_category(category_id, user_id)
+    return jsonify({"message": "Category deleted successfully"}), 200
+  

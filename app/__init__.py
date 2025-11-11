@@ -5,6 +5,7 @@ import os
 from app.utils.auth_exceptions import *
 from pydantic import ValidationError
 from app.utils.transaction_exceptions import *
+from app.utils.category_exceptions import *
 
 def create_app():
     app = Flask(__name__)
@@ -41,6 +42,8 @@ def create_app():
         CategoryNotFoundError: (404, "Category not found."),
         TransactionNotFoundError: (404, "Transaction not found."),
         TransactionDatabaseError: (500, "Transaction database error."),
+        CategoryAlreadyExistsError: (400, "Category already exists."),
+        CategoryDatabaseError: (500, "Database error occurred while processing category.")
     }
 
 
