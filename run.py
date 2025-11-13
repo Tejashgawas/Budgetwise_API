@@ -1,5 +1,5 @@
 from app import create_app
-
+from app.utils.auth_exceptions import TokenMissingError
 app = create_app()
 
 @app.route("/")
