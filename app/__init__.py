@@ -27,6 +27,7 @@ def create_app():
     from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix="/api")
 
+
     # =========================
     # AUTH ERROR HANDLERS
     # =========================
@@ -61,5 +62,7 @@ def create_app():
             "message": "Invalid input data",
             "errors": error.errors()
         }), 400
+    
+
 
     return app
