@@ -15,3 +15,4 @@ test_handlers.py
 # Ignore token and Flask environment file in the CLI folder
 app/Cli/.budgetwise_token
 app/Cli/.flaskenv
+venv/
