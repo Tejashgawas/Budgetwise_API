@@ -8,6 +8,9 @@ migrations/
 budgetapienv/
 *.sqlite3
 *.db
+seeding_script.py
+transaction_seed.py
+test_handlers.py
 
 # Ignore token and Flask environment file in the CLI folder
 app/Cli/.budgetwise_token

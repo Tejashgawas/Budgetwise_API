@@ -3,12 +3,15 @@ from app.models.category import Category
 from app.extensions import db
 from sqlalchemy import func, extract, case, and_
 from app.schemas.summary_schema import SummaryResponse, SummaryResponseSubCategory
+from app.utils.summary_exceptions import *
 from datetime import date, datetime
-from typing import Dict, Optional
+from typing import Optional
 import calendar
 
 
+
 class SummaryService:
+
     # -------------------------------------------------------------------------
     @staticmethod
     def get_summary_by_period(
@@ -17,36 +20,35 @@ class SummaryService:
         tx_type: Optional[str] = None,
         start: Optional[str] = None,
         end: Optional[str] = None,
-        subcategory: Optional[str] = None,
         caller: Optional[str] = None,
+        subcategory: Optional[str] = None,
     ):
-        """
-        Get total income, total expense, and transaction counts for the given period.
-        Supports filtering by date, month, or year — and optionally subcategory.
-        """
+        """Get total income, total expense, and transaction counts."""
 
         try:
-            # ✅ Basic validation
+            # ---------------------------- VALIDATION ----------------------------
             if not user_id:
-                return {"error": "Missing required parameter: user_id."}
+                raise MissingParameterError("Missing required parameter: user_id.")
+
             if not start or not end:
-                return {"error": "Missing required parameters: start and end."}
+                raise MissingParameterError("Missing required parameters: start and end.")
 
             if period_type not in ["month", "year", "date"]:
-                return {"error": "Invalid period_type. Must be 'month', 'year', or 'date'."}
+                raise InvalidPeriodTypeError(
+                    "Invalid period_type. Must be 'month', 'year', or 'date'."
+                )
 
-            # ✅ Dashboard shortcut — defaults to current year
+            # Handle dashboard default (current year)
             if caller == "dashboard":
                 period_type = "year"
-                start = str(datetime.now().year)
-                end = str(datetime.now().year)
+                start = end = str(datetime.now().year)
 
-            # ✅ Build period filter
+            # -------------------------- BUILD FILTER ---------------------------
             filter_condition, range_start, range_end = SummaryService._build_period_filter(
                 period_type, start, end, subcategory
             )
 
-            # ✅ Query aggregation
+            # ----------------------------- QUERY -------------------------------
             query = (
                 db.session.query(
                     func.sum(case((Category.type == "expense", 1), else_=0)).label("expense_transaction_count"),
@@ -65,15 +67,14 @@ class SummaryService:
             )
 
             result = query.first()
-            if not result:
-                msg = (
-                    f"No transactions found for subcategory '{subcategory}'."
-                    if subcategory
+
+            if not result or result.total_transactions == 0:
+                raise SummaryNotFoundError(
+                    f"No transactions found for subcategory '{subcategory}'." if subcategory 
                     else "No transactions found for the selected period."
                 )
-                return {"message": msg}
 
-            # ✅ Prepare summary safely
+            # --------------------------- PREPARE SUMMARY ------------------------
             summary = {
                 "expense_transaction_count": int(result.expense_transaction_count or 0),
                 "expense_transaction_total": float(result.expense_transaction_total or 0),
@@ -86,7 +87,7 @@ class SummaryService:
                 "subcategory": subcategory or "All",
             }
 
-            # ✅ Filter by tx_type (if requested)
+            # Filter by tx_type
             if tx_type == "income":
                 filtered_summary = {
                     "income_transaction_count": summary["income_transaction_count"],
@@ -107,20 +108,22 @@ class SummaryService:
                 filtered_summary = summary
 
             response_payload = {
-            **filtered_summary,
-            "type": tx_type or "all",  # ✅ ensure required field
-            "transactions_count": filtered_summary.get("total_transactions", 0),  # ✅ required field
-            # "subcategory": "All",  # optional, for consistency
-            "range_start": str(range_start) if 'range_start' in locals() else None,
-            "range_end": str(range_end) if 'range_end' in locals() else None,
+                **filtered_summary,
+                "type": tx_type or "all",
+                "transactions_count": filtered_summary.get("total_transactions", 0),
+                "range_start": summary["range_start"],
+                "range_end": summary["range_end"],
             }
 
             return SummaryResponse(**response_payload)
 
-        except ValueError as ve:
-            return {"error": str(ve)}
+        except SummaryError:
+            # Directly rethrow custom exceptions
+            raise
+
         except Exception as e:
-            return {"error": f"Unexpected error: {str(e)}"}
+            raise SummaryDatabaseError(f"Unexpected summary error: {str(e)}")
+
 
     # -------------------------------------------------------------------------
     @staticmethod
@@ -133,28 +136,31 @@ class SummaryService:
         subcategory: Optional[str] = None,
         caller: Optional[str] = None,
     ):
-        """
-        Get subcategory-wise breakdown of income/expense totals for given period.
-        """
+        """Get subcategory breakdown of income/expense totals."""
 
         try:
+            # ---------------------------- VALIDATION ----------------------------
             if not user_id:
-                return {"error": "Missing required parameter: user_id."}
+                raise MissingParameterError("Missing required parameter: user_id.")
+
             if not start or not end:
-                return {"error": "Missing required parameters: start and end."}
+                raise MissingParameterError("Missing required parameters: start and end.")
 
             if period_type not in ["month", "year", "date"]:
-                return {"error": "Invalid period_type. Must be 'month', 'year', or 'date'."}
+                raise InvalidPeriodTypeError(
+                    "Invalid period_type. Must be 'month', 'year', or 'date'."
+                )
 
             if caller == "dashboard":
                 period_type = "year"
-                start = str(datetime.now().year)
-                end = str(datetime.now().year)
+                start = end = str(datetime.now().year)
 
+            # -------------------------- BUILD FILTER ---------------------------
             filter_condition, range_start, range_end = SummaryService._build_period_filter(
                 period_type, start, end, subcategory
             )
 
+            # ----------------------------- SUMMARY QUERY -----------------------
             query = (
                 db.session.query(
                     func.sum(case((Category.type == "expense", 1), else_=0)).label("expense_transaction_count"),
@@ -173,8 +179,11 @@ class SummaryService:
             )
 
             result = query.first()
-            if not result:
-                return {"message": "No transactions found for this period or subcategory."}
+
+            if not result or result.total_transactions == 0:
+                raise SummaryNotFoundError(
+                    "No transactions found for this period or subcategory."
+                )
 
             summary = {
                 "expense_transaction_count": int(result.expense_transaction_count or 0),
@@ -185,7 +194,7 @@ class SummaryService:
                 "net_difference": float(result.net_difference or 0),
             }
 
-            # ✅ Filter by tx_type
+            # ----------------------- TYPE FILTERING ---------------------------
             if tx_type == "income":
                 filtered_summary = {
                     "income_transaction_count": summary["income_transaction_count"],
@@ -201,7 +210,7 @@ class SummaryService:
             else:
                 filtered_summary = summary
 
-            # ✅ Subcategory breakdown
+            # ---------------------- SUBCATEGORY BREAKDOWN ----------------------
             breakdown_query = (
                 db.session.query(
                     Category.name.label("category_name"),
@@ -220,75 +229,81 @@ class SummaryService:
             breakdown_results = breakdown_query.all()
 
             summary_breakdown = {"income": [], "expense": []}
+
             for r in breakdown_results:
                 if r.category_type == "income":
-                    summary_breakdown["income"].append({"category": r.category_name, "total": float(r.total)})
-                elif r.category_type == "expense":
-                    summary_breakdown["expense"].append({"category": r.category_name, "total": float(r.total)})
+                    summary_breakdown["income"].append(
+                        {"category": r.category_name, "total": float(r.total)}
+                    )
+                else:
+                    summary_breakdown["expense"].append(
+                        {"category": r.category_name, "total": float(r.total)}
+                    )
 
             response_data = {
-            "type": tx_type or "all",
-            "transactions_count": filtered_summary.get("total_transactions", 0),
-            "range_start": str(range_start),
-            "range_end": str(range_end),
-            "subcategory": subcategory or "All",
-            "total_income": filtered_summary.get("income_transaction_total", 0.0),
-            "total_expense": filtered_summary.get("expense_transaction_total", 0.0),
-            "net_difference": filtered_summary.get("net_difference", 0.0),
-            "summary_breakdown": summary_breakdown,
+                "type": tx_type or "all",
+                "transactions_count": filtered_summary.get("total_transactions", 0),
+                "range_start": str(range_start),
+                "range_end": str(range_end),
+                "subcategory": subcategory or "All",
+                "total_income": filtered_summary.get("income_transaction_total", 0.0),
+                "total_expense": filtered_summary.get("expense_transaction_total", 0.0),
+                "net_difference": filtered_summary.get("net_difference", 0.0),
+                "summary_breakdown": summary_breakdown,
             }
 
             return SummaryResponseSubCategory(**response_data)
 
-        except ValueError as ve:
-            return {"error": str(ve)}
+        except SummaryError:
+            raise
+
         except Exception as e:
-            return {"error": f"Unexpected error: {str(e)}"}
+            raise SummaryDatabaseError(f"Unexpected summary error: {str(e)}")
+
 
     # -------------------------------------------------------------------------
     @staticmethod
     def _build_period_filter(period_type: str, start: str, end: str, subcategory: Optional[str] = None):
-        """
-        Builds SQLAlchemy date/month/year range filter + optional subcategory filter.
-        """
+        """Builds SQLAlchemy date/month/year filter."""
 
-        filters = []
+        try:
+            filters = []
 
-        # YEARLY filter
-        if period_type == "year":
-            start_year = int(start)
-            end_year = int(end)
-            filters.append(extract("year", Transaction.created_date).between(start_year, end_year))
-            range_start = date(start_year, 1, 1)
-            range_end = date(end_year, 12, 31)
+            if period_type == "year":
+                start_year = int(start)
+                end_year = int(end)
+                filters.append(extract("year", Transaction.created_date).between(start_year, end_year))
+                range_start = date(start_year, 1, 1)
+                range_end = date(end_year, 12, 31)
 
-        # MONTHLY filter
-        elif period_type == "month":
-            start_year, start_month = map(int, start.split("-"))
-            end_year, end_month = map(int, end.split("-"))
-            range_start = date(start_year, start_month, 1)
-            last_day = calendar.monthrange(end_year, end_month)[1]
-            range_end = date(end_year, end_month, last_day)
+            elif period_type == "month":
+                start_year, start_month = map(int, start.split("-"))
+                end_year, end_month = map(int, end.split("-"))
+                range_start = date(start_year, start_month, 1)
+                last_day = calendar.monthrange(end_year, end_month)[1]
+                range_end = date(end_year, end_month, last_day)
 
-            filters.append(
-                and_(
-                    extract("year", Transaction.created_date).between(start_year, end_year),
-                    extract("month", Transaction.created_date).between(start_month, end_month),
+                filters.append(
+                    and_(
+                        extract("year", Transaction.created_date).between(start_year, end_year),
+                        extract("month", Transaction.created_date).between(start_month, end_month),
+                    )
                 )
-            )
 
-        # DATE RANGE filter
-        elif period_type == "date":
-            range_start = datetime.strptime(start, "%Y-%m-%d").date()
-            range_end = datetime.strptime(end, "%Y-%m-%d").date()
-            filters.append(Transaction.created_date.between(range_start, range_end))
+            elif period_type == "date":
+                range_start = datetime.strptime(start, "%Y-%m-%d").date()
+                range_end = datetime.strptime(end, "%Y-%m-%d").date()
+                filters.append(Transaction.created_date.between(range_start, range_end))
 
-        else:
-            raise ValueError("Invalid period_type. Must be 'year', 'month', or 'date'.")
+            else:
+                raise InvalidPeriodTypeError("Invalid period_type supplied.")
 
-        # ✅ Optional subcategory filter
-        if subcategory:
-            filters.append(Category.name.ilike(subcategory))
+            if subcategory:
+                filters.append(Category.name.ilike(subcategory))
 
-        filter_condition = and_(*filters)
-        return filter_condition, range_start, range_end
+            return and_(*filters), range_start, range_end
+
+        except ValueError:
+            raise InvalidPeriodTypeError("Invalid date or period format.")
+        except Exception as e:
+            raise SummaryDatabaseError(f"Error building filter: {str(e)}")
