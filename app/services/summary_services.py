@@ -231,14 +231,24 @@ class SummaryService:
             summary_breakdown = {"income": [], "expense": []}
 
             for r in breakdown_results:
-                if r.category_type == "income":
+                # Include ALL categories
+                if tx_type is None or tx_type == "all":
+                    summary_breakdown[r.category_type].append(
+                        {"category": r.category_name, "total": float(r.total)}
+                    )
+
+                # Include ONLY income
+                elif tx_type == "income" and r.category_type == "income":
                     summary_breakdown["income"].append(
                         {"category": r.category_name, "total": float(r.total)}
                     )
-                else:
+
+                # Include ONLY expense
+                elif tx_type == "expense" and r.category_type == "expense":
                     summary_breakdown["expense"].append(
                         {"category": r.category_name, "total": float(r.total)}
                     )
+
 
             response_data = {
                 "type": tx_type or "all",
@@ -265,7 +275,7 @@ class SummaryService:
     @staticmethod
     def _build_period_filter(period_type: str, start: str, end: str, subcategory: Optional[str] = None):
         """Builds SQLAlchemy date/month/year filter."""
-
+        print("Building filter for:", period_type, start, end, subcategory)
         try:
             filters = []
 

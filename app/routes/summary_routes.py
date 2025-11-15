@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, Response, jsonify, request
 from app.models import Category, Transaction, User
 from app.schemas.transaction_schemas import TransactionCreateSchema
@@ -66,6 +67,11 @@ def summary_by_period():
     end = request.args.get("end")
     caller = request.args.get("caller")
 
+    current_year = datetime.now().year
+    if not start or not end:
+        start = f"{current_year}-01-01"
+        end = f"{current_year}-12-31"
+
     try:
         result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
         # ✅ Flask can directly jsonify dicts
@@ -84,6 +90,11 @@ def summary_by_subcategory():
     end = request.args.get("end")
     subcategory = request.args.get("subcategory")
     caller = request.args.get("caller")
+
+    current_year = datetime.now().year
+    if not start or not end:
+        start = f"{current_year}-01-01"
+        end = f"{current_year}-12-31"
 
     try:
         result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
