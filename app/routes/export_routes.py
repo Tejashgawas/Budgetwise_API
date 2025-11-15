@@ -5,6 +5,9 @@ from app.models.transaction import Transaction
 from app.models.user import User
 from app.utils.export_utils import generate_pdf_report, generate_csv_report
 from app.utils.protected import auth_required
+from datetime import datetime, date
+from app.utils.export_exceptions import DateFormatError
+
 
 export_bp = Blueprint("export", __name__)
 
@@ -21,18 +24,26 @@ def download_pdf():
         return jsonify({"message": "User not found"}), 404
 
     # optional date filters
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
 
-    if start_date:
-        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    else:
-        start_date = date.today().replace(day=1)
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        else:
+            start_date = date.today().replace(day=1)
 
-    if end_date:
-        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-    else:
-        end_date = date.today()
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        else:
+            end_date = date.today()
+
+        if start_date > end_date:
+            raise DateFormatError("start_date cannot be after end_date.")
+
+    except ValueError:
+        raise DateFormatError("Invalid date format. Expected YYYY-MM-DD.")
+
 
     transactions = (
         Transaction.query
@@ -77,10 +88,38 @@ def download_csv():
     if not user:
         return jsonify({"message": "User not found"}), 404
 
-    transactions = Transaction.query.filter_by(user_id=user_id).all()
+    # optional date filters
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
+
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        else:
+            start_date = date.today().replace(day=1)
+
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        else:
+            end_date = date.today()
+
+        if start_date > end_date:
+            raise DateFormatError("start_date cannot be after end_date.")
+
+    except ValueError:
+        raise DateFormatError("Invalid date format. Expected YYYY-MM-DD.")
+
+
+    transactions = (
+        Transaction.query
+        .filter(Transaction.user_id == user_id)
+        .filter(Transaction.created_date >= start_date)
+        .filter(Transaction.created_date <= end_date)
+        .all()
+    )
 
     if not transactions:
-        return jsonify({"message": "No transactions found for this user."}), 404
+        return jsonify({"message": "No transactions found for this period."}), 404
 
     csv_data = generate_csv_report(
         user_id=user_id,

@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from app.utils.transaction_exceptions import *
 from app.utils.category_exceptions import *
 from app.utils.summary_exceptions import *
+from app.utils.export_exceptions import *
 
 def create_app():
     app = Flask(__name__)
@@ -50,7 +51,13 @@ def create_app():
         MissingParameterError: (400, "Required query parameters are missing."),
         InvalidPeriodTypeError: (400, "Unsupported period_type provided."),
         SummaryNotFoundError: (404, "No transactions found for the selected period."),
-        SummaryDatabaseError: (500, "Unexpected database or computation error.")
+        SummaryDatabaseError: (500, "Unexpected database or computation error."),
+        DateFormatError: (400, "Invalid date format."),
+        EmptyTransactionError: (404, "No transactions found for this period."),
+        PDFGenerationError: (500, "Error generating PDF report."),
+        CSVGenerationError: (500, "Error generating CSV report."),
+        ExportError: (500, "Unexpected export operation error.")
+
     }
 
 
