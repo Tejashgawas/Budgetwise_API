@@ -8,6 +8,7 @@ from app.services.summary_services import SummaryService
 from pydantic import ValidationError
 from sqlalchemy import func
 from app.utils.protected import auth_required
+from app.utils.summary_exceptions import SummaryError
 
 summary_bp = Blueprint('summary', __name__)
 
@@ -65,10 +66,12 @@ def summary_by_period():
     end = request.args.get("end")
     caller = request.args.get("caller")
 
-    result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
-    # ✅ Flask can directly jsonify dicts
-    return jsonify(result.model_dump()), 200
-
+    try:
+        result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
+        # ✅ Flask can directly jsonify dicts
+        return jsonify(result.model_dump()), 200
+    except SummaryError as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @summary_bp.route("/subcategory", methods=["GET"])
@@ -82,6 +85,9 @@ def summary_by_subcategory():
     subcategory = request.args.get("subcategory")
     caller = request.args.get("caller")
 
-    result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
-    # ✅ Flask can directly jsonify dicts
-    return jsonify(result.model_dump()), 200
+    try:
+        result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
+        # ✅ Flask can directly jsonify dicts
+        return jsonify(result.model_dump()), 200
+    except SummaryError as e:
+        return jsonify({"error": str(e)}), 400

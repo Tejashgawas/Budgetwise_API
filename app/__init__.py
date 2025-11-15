@@ -6,6 +6,7 @@ from app.utils.auth_exceptions import *
 from pydantic import ValidationError
 from app.utils.transaction_exceptions import *
 from app.utils.category_exceptions import *
+from app.utils.summary_exceptions import *
 
 def create_app():
     app = Flask(__name__)
@@ -43,7 +44,12 @@ def create_app():
         TransactionNotFoundError: (404, "Transaction not found."),
         TransactionDatabaseError: (500, "Transaction database error."),
         CategoryAlreadyExistsError: (400, "Category already exists."),
-        CategoryDatabaseError: (500, "Database error occurred while processing category.")
+        CategoryDatabaseError: (500, "Database error occurred while processing category."),
+        SummaryError: (500, "An error occurred while processing the summary."),
+        MissingParameterError: (400, "Required query parameters are missing."),
+        InvalidPeriodTypeError: (400, "Unsupported period_type provided."),
+        SummaryNotFoundError: (404, "No transactions found for the selected period."),
+        SummaryDatabaseError: (500, "Unexpected database or computation error.")
     }
 
 
