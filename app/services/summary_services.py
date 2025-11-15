@@ -497,8 +497,8 @@ class SummaryService:
                 "overall_highest_expense": overall_highest_expense,
 
                 "transactions_per_month": transactions_per_month,
-                # "income_per_month": income_per_month,
-                # "expense_per_month": expense_per_month,
+                "income_per_month": income_per_month,
+                "expense_per_month": expense_per_month,
                 "monthly_data": monthly_data
             }
 

@@ -66,7 +66,7 @@ def summary_by_period():
         end = f"{current_year}-12-31"
 
     try:
-        result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
+        result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end)
         # ✅ Flask can directly jsonify dicts
         return jsonify(result.model_dump()), 200
     except SummaryError as e:
