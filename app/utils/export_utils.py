@@ -145,10 +145,11 @@ def generate_pdf_report(user_id, user_name, user_email, transactions,
                 leading=11,
                 fontName=FONT_NAME,
             ))
-
+            serial = index * rows_per_page + (chunk.index(t) + 1)  # Global sequential number
+            hybrid_id = f"TX-{serial} (ID:{t.id})"
             table_rows.append([
                 t.created_date.strftime("%Y-%m-%d") if t.created_date else "N/A",
-                t.id,
+                hybrid_id,
                 t.type.title(),
                 t.category.name if t.category else "N/A",
                 f"${t.amount:.2f}",
@@ -165,7 +166,7 @@ def generate_pdf_report(user_id, user_name, user_email, transactions,
         available_width = A4[0] - doc.leftMargin - doc.rightMargin
         col_widths = [
             60,    # Date
-            45,    # Txn ID
+            75,    # Txn ID
             70,    # Type
             90,    # Category
             55,    # Amount
@@ -261,10 +262,11 @@ def generate_csv_report(user_id, user_name, user_email, transactions):
     writer.writerow(["Date", "Transaction ID", "Transaction Type", "Category Type", "Amount", "Notes"])
 
     # Transaction rows
-    for t in transactions:
+    for i,t in enumerate(transactions):
+        hybrid_id = f"TX-{i+1} (ID:{t.id})"
         writer.writerow([
             t.created_date.strftime("%Y-%m-%d") if t.created_date else "N/A",
-            t.id,
+            hybrid_id,
             t.type.title(),
             t.category.name if t.category else "N/A",
             f"{t.amount:.2f}",
