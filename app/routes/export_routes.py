@@ -7,6 +7,8 @@ from app.utils.export_utils import generate_pdf_report, generate_csv_report
 from app.utils.protected import auth_required
 from datetime import datetime, date
 from app.utils.export_exceptions import DateFormatError
+from app.utils.export_exceptions import PDFGenerationError
+from app.utils.export_exceptions import CSVGenerationError
 
 
 export_bp = Blueprint("export", __name__)
@@ -56,16 +58,19 @@ def download_pdf():
     if not transactions:
         return jsonify({"message": "No transactions found for this period."}), 404
 
-    pdf_bytes = BytesIO(
-        generate_pdf_report(
-            user_id=user_id,
-            user_name=user.username,
-            user_email=user.email,
-            transactions=transactions,
-            start_date=start_date,
-            end_date=end_date
+    try:
+        pdf_bytes = BytesIO(
+            generate_pdf_report(
+                user_id=user_id,
+                user_name=user.username,
+                user_email=user.email,
+                transactions=transactions,
+                start_date=start_date,
+                end_date=end_date
+            )
         )
-    )
+    except Exception as e:
+        raise PDFGenerationError(str(e))
 
     pdf_bytes.seek(0)
 
@@ -121,12 +126,15 @@ def download_csv():
     if not transactions:
         return jsonify({"message": "No transactions found for this period."}), 404
 
-    csv_data = generate_csv_report(
-        user_id=user_id,
-        user_name=user.username,
-        user_email=user.email,
-        transactions=transactions
-    )
+    try:
+        csv_data = generate_csv_report(
+            user_id=user_id,
+            user_name=user.username,
+            user_email=user.email,
+            transactions=transactions
+        )
+    except Exception as e:
+        raise CSVGenerationError(str(e))
 
     csv_bytes = BytesIO()
     csv_bytes.write(csv_data.encode("utf-8"))

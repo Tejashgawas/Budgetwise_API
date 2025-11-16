@@ -13,7 +13,7 @@ class Transaction(db.Model):
     description = db.Column(db.String(255))
     type = db.Column(db.String(50), nullable=False)  # e.g., 'income' or 'expense'
     
-    created_date = db.Column(db.Date, default=datetime.utcnow)
+    created_date = db.Column(db.Date, default=datetime.utcnow().date) #changed to date only #changed
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = db.relationship("User", back_populates="transactions")

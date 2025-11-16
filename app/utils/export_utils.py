@@ -16,6 +16,8 @@ from reportlab.platypus import (
 )
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import PageBreak
+
 
 # Register font
 try:
@@ -104,71 +106,97 @@ def generate_pdf_report(user_id, user_name, user_email, transactions,
     elements.append(Spacer(1, 25))
 
     # -----------------------------------------------------------
-    # Transactions Table (Final — fixed width + wrapping + fits page)
+    # Transactions Table with Manual Pagination (15 per page)
     # -----------------------------------------------------------
+
     elements.append(Paragraph("<b>Transaction Details</b>", styles["Heading2"]))
     elements.append(Spacer(1, 10))
 
-    table_data = [
-        ["Date", "Txn ID", "Type", "Category", "Amount", "Notes"]
+    table_header = [
+        ["Date", "Transaction ID", "Type", "Category", "Amount", "Notes"]
     ]
 
-    # Convert notes to paragraphs for wrapping
-    wrap_style = ParagraphStyle(
-        "Wrap",
-        parent=styles["BodyText"],
-        fontName=FONT_NAME,
-        fontSize=9,
-        leading=11,
-    )
+    # -----------------------------------------------------------
+    # Auto-calculate page capacity (rows per page)
+    # -----------------------------------------------------------
+    estimated_row_height = 18      # in points (approx based on your font/spacing)
+    header_height = 40             # height of table header row
+    usable_height = A4[1] - doc.topMargin - doc.bottomMargin - 200  # adjust based on header/userinfo
 
-    for t in transactions:
-        notes_text = Paragraph(t.description or "-", wrap_style)
+    rows_per_page = int((usable_height - header_height) / estimated_row_height)
 
-        table_data.append([
-            t.created_date.strftime("%Y-%m-%d") if t.created_date else "N/A",
-            str(t.id),
-            t.type.title(),
-            t.category.name if t.category else "N/A",
-            f"${t.amount:.2f}",
-            notes_text,
-        ])
+    if rows_per_page < 10:
+        rows_per_page = 10  # minimum safety
 
-    # --------------------------------------------
-    # Dynamic column widths that WILL ALWAYS FIT
-    # --------------------------------------------
-    # Available page width
-    available_width = A4[0] - doc.leftMargin - doc.rightMargin
 
-    col_widths = [
-        60,    # Date
-        45,    # Txn ID
-        70,    # Type
-        90,    # Category
-        55,    # Amount
-        available_width - (60 + 45 + 70 + 90 + 55)  # Notes auto-fills remaining
-    ]
+    # Split transactions into chunks based on rows_per_page
+    # PAGE_SIZE = 15
+    chunks = [transactions[i:i + rows_per_page] for i in range(0, len(transactions), rows_per_page)]
 
-    table = Table(table_data, repeatRows=1, colWidths=col_widths)
+    for index, chunk in enumerate(chunks):
+        table_rows = []
 
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3498DB")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        # Build rows for this page
+        for t in chunk:
+            notes = Paragraph(t.description or "-", ParagraphStyle(
+                "NotesWrap",
+                parent=styles["Normal"],
+                fontSize=9,
+                leading=11,
+                fontName=FONT_NAME,
+            ))
 
-        ("ALIGN", (0, 1), (-2, -1), "LEFT"),
-        ("ALIGN", (-2, 1), (-2, -1), "RIGHT"),  # Amount
+            table_rows.append([
+                t.created_date.strftime("%Y-%m-%d") if t.created_date else "N/A",
+                t.id,
+                t.type.title(),
+                t.category.name if t.category else "N/A",
+                f"${t.amount:.2f}",
+                notes
+            ])
+        
+        # Combine header + rows
+        table_data = table_header + table_rows
 
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("FONTNAME", (0, 0), (-1, -1), FONT_NAME),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        # --------------------------------------------
+        # Dynamic column widths that WILL ALWAYS FIT
+        # --------------------------------------------
+        # Available page width
+        available_width = A4[0] - doc.leftMargin - doc.rightMargin
+        col_widths = [
+            60,    # Date
+            45,    # Txn ID
+            70,    # Type
+            90,    # Category
+            55,    # Amount
+            available_width - (60 + 45 + 70 + 90 + 55)  # Notes auto-fills remaining
+        ]
 
-        ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ECF0F1")),
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#BDC3C7")),
-    ]))
+        table = Table(table_data, repeatRows=1, hAlign="LEFT", colWidths=col_widths,splitByRow=True)
 
-    elements.append(table)
-    elements.append(Spacer(1, 25))
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3498DB")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+
+            ("ALIGN", (0, 1), (-2, -1), "LEFT"),
+            ("ALIGN", (-2, 1), (-2, -1), "RIGHT"),  # Amount
+
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("FONTNAME", (0, 0), (-1, -1), FONT_NAME),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+
+            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ECF0F1")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#BDC3C7")),
+        ]))
+
+        # Add table to PDF
+        elements.append(table)
+        elements.append(Spacer(1, 12))
+
+        # Add page break UNLESS it's the last page
+        if index < len(chunks) - 1:
+            elements.append(PageBreak())
 
 
 
