@@ -39,7 +39,7 @@ def create_transaction(user_id: int, transaction_data: TransactionCreateSchema):
                 )
                 db.session.add(category)
                 db.session.flush() #Fixed order changed
-                db.session.commit()
+                # db.session.commit() #removed
                 
         
         if not category:
