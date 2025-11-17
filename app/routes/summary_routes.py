@@ -89,7 +89,7 @@ def summary_by_subcategory():
         end = f"{current_year}-12-31"
 
     try:
-        result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
+        result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory)
         # ✅ Flask can directly jsonify dicts
         return jsonify(result.model_dump()), 200
     except SummaryError as e:
