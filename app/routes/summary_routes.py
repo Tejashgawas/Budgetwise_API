@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, Response, jsonify, request
 from app.models import Category, Transaction, User
 from app.schemas.transaction_schemas import TransactionCreateSchema
@@ -17,18 +18,12 @@ summary_bp = Blueprint('summary', __name__)
 def test():
     return jsonify({"message": "Success"}), 200
 
-
-# @summary_bp.route('/add', methods=['POST'])
-# @auth_required
-# def add_transaction():
-#     try:
-#         payload = request.get_json() or {}
-#         data = TransactionCreateSchema(**payload)
-#         user_id = request.user_id
-#         transaction_resp = create_transaction(user_id, data)
-#         return jsonify(transaction_resp.dict()), 201
-#     except ValidationError as e:
-#         return jsonify({"errors": e.errors()}), 400
+@summary_bp.route('/dashboard', methods=['GET'])
+@auth_required
+def getdashboard():
+    user_id = request.user_id
+    res = SummaryService.get_dashboard_data(user_id)
+    return jsonify(res), 200
 
 
 @summary_bp.route("/get", methods=["GET"])
@@ -64,10 +59,14 @@ def summary_by_period():
     tx_type = request.args.get("type")
     start = request.args.get("start")
     end = request.args.get("end")
-    caller = request.args.get("caller")
+
+    current_year = datetime.now().year
+    if not start or not end:
+        start = f"{current_year}-01-01"
+        end = f"{current_year}-12-31"
 
     try:
-        result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end, caller)
+        result = SummaryService.get_summary_by_period(user_id, period_type, tx_type, start, end)
         # ✅ Flask can directly jsonify dicts
         return jsonify(result.model_dump()), 200
     except SummaryError as e:
@@ -83,10 +82,14 @@ def summary_by_subcategory():
     start = request.args.get("start")
     end = request.args.get("end")
     subcategory = request.args.get("subcategory")
-    caller = request.args.get("caller")
+
+    current_year = datetime.now().year
+    if not start or not end:
+        start = f"{current_year}-01-01"
+        end = f"{current_year}-12-31"
 
     try:
-        result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory ,caller)
+        result = SummaryService.get_summary_by_subcategory(user_id, period_type, tx_type, start, end, subcategory)
         # ✅ Flask can directly jsonify dicts
         return jsonify(result.model_dump()), 200
     except SummaryError as e:

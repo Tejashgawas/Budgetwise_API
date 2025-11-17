@@ -20,7 +20,6 @@ class SummaryService:
         tx_type: Optional[str] = None,
         start: Optional[str] = None,
         end: Optional[str] = None,
-        caller: Optional[str] = None,
         subcategory: Optional[str] = None,
     ):
         """Get total income, total expense, and transaction counts."""
@@ -38,10 +37,6 @@ class SummaryService:
                     "Invalid period_type. Must be 'month', 'year', or 'date'."
                 )
 
-            # Handle dashboard default (current year)
-            if caller == "dashboard":
-                period_type = "year"
-                start = end = str(datetime.now().year)
 
             # -------------------------- BUILD FILTER ---------------------------
             filter_condition, range_start, range_end = SummaryService._build_period_filter(
@@ -134,7 +129,6 @@ class SummaryService:
         start: Optional[str] = None,
         end: Optional[str] = None,
         subcategory: Optional[str] = None,
-        caller: Optional[str] = None,
     ):
         """Get subcategory breakdown of income/expense totals."""
 
@@ -150,10 +144,6 @@ class SummaryService:
                 raise InvalidPeriodTypeError(
                     "Invalid period_type. Must be 'month', 'year', or 'date'."
                 )
-
-            if caller == "dashboard":
-                period_type = "year"
-                start = end = str(datetime.now().year)
 
             # -------------------------- BUILD FILTER ---------------------------
             filter_condition, range_start, range_end = SummaryService._build_period_filter(
@@ -231,14 +221,24 @@ class SummaryService:
             summary_breakdown = {"income": [], "expense": []}
 
             for r in breakdown_results:
-                if r.category_type == "income":
+                # Include ALL categories
+                if tx_type is None or tx_type == "all":
+                    summary_breakdown[r.category_type].append(
+                        {"category": r.category_name, "total": float(r.total)}
+                    )
+
+                # Include ONLY income
+                elif tx_type == "income" and r.category_type == "income":
                     summary_breakdown["income"].append(
                         {"category": r.category_name, "total": float(r.total)}
                     )
-                else:
+
+                # Include ONLY expense
+                elif tx_type == "expense" and r.category_type == "expense":
                     summary_breakdown["expense"].append(
                         {"category": r.category_name, "total": float(r.total)}
                     )
+
 
             response_data = {
                 "type": tx_type or "all",
@@ -259,13 +259,263 @@ class SummaryService:
 
         except Exception as e:
             raise SummaryDatabaseError(f"Unexpected summary error: {str(e)}")
+        
+    #-------------------------------------------------------------------------
+
+    @staticmethod
+    def get_dashboard_data(user_id: int):
+        try:
+            # -----------------------------
+            # 0. VALIDATE INPUT
+            # -----------------------------
+            if not user_id:
+                raise MissingParameterError("user_id is required to fetch summary data.")
+
+            # Check if any transactions exist for this user
+            trans_exists = (
+                db.session.query(func.count(Transaction.id))
+                .filter(Transaction.user_id == user_id)
+                .scalar()
+            )
+
+            if trans_exists == 0:
+                raise SummaryNotFoundError("No transactions found for this user.")
+
+            # -----------------------------
+            # 1. TOTAL INCOME / EXPENSE
+            # -----------------------------
+            total_income = db.session.query(
+                func.coalesce(func.sum(Transaction.amount), 0)
+            ).filter_by(user_id=user_id, type="income").scalar()
+
+            total_expense = db.session.query(
+                func.coalesce(func.sum(Transaction.amount), 0)
+            ).filter_by(user_id=user_id, type="expense").scalar()
+
+            net_difference = total_income - total_expense
+
+            # -----------------------------
+            # 2. INCOME BY CATEGORY
+            # -----------------------------
+            income_by_category_raw = (
+                db.session.query(Category.name, func.sum(Transaction.amount))
+                .join(Transaction, Category.id == Transaction.category_id)
+                .filter(Transaction.user_id == user_id, Transaction.type == "income")
+                .group_by(Category.name)
+                .all()
+            )
+
+            income_by_category = {
+                name: float(amount) for name, amount in income_by_category_raw
+            }
+
+            # -----------------------------
+            # 3. EXPENSE BY CATEGORY
+            # -----------------------------
+            expense_by_category_raw = (
+                db.session.query(Category.name, func.sum(Transaction.amount))
+                .join(Transaction, Category.id == Transaction.category_id)
+                .filter(Transaction.user_id == user_id, Transaction.type == "expense")
+                .group_by(Category.name)
+                .all()
+            )
+
+            expense_by_category = {
+                name: float(amount) for name, amount in expense_by_category_raw
+            }
+
+            # -----------------------------
+            # 4. TOP 3 INCOME
+            # -----------------------------
+            top_3_income_raw = (
+                db.session.query(Transaction)
+                .filter_by(user_id=user_id, type="income")
+                .order_by(Transaction.amount.desc())
+                .limit(3)
+                .all()
+            )
+
+            top_3_income = [
+                {
+                    "amount": float(t.amount),
+                    "category": t.category.name,
+                    "date": t.created_date.isoformat()
+                }
+                for t in top_3_income_raw
+            ]
+
+            # -----------------------------
+            # 5. TOP 3 EXPENSE
+            # -----------------------------
+            top_3_expense_raw = (
+                db.session.query(Transaction)
+                .filter_by(user_id=user_id, type="expense")
+                .order_by(Transaction.amount.desc())
+                .limit(3)
+                .all()
+            )
+
+            top_3_expense = [
+                {
+                    "amount": float(t.amount),
+                    "category": t.category.name,
+                    "date": t.created_date.isoformat()
+                }
+                for t in top_3_expense_raw
+            ]
+
+            # -----------------------------
+            # 6. OVERALL HIGHEST INCOME
+            # -----------------------------
+            highest_income = (
+                db.session.query(Transaction)
+                .filter_by(user_id=user_id, type="income")
+                .order_by(Transaction.amount.desc())
+                .first()
+            )
+
+            overall_highest_income = (
+                {
+                    "amount": float(highest_income.amount),
+                    "category": highest_income.category.name,
+                    "date": highest_income.created_date.isoformat(),
+                }
+                if highest_income else None
+            )
+
+            # -----------------------------
+            # 7. OVERALL HIGHEST EXPENSE
+            # -----------------------------
+            highest_expense = (
+                db.session.query(Transaction)
+                .filter_by(user_id=user_id, type="expense")
+                .order_by(Transaction.amount.desc())
+                .first()
+            )
+
+            overall_highest_expense = (
+                {
+                    "amount": float(highest_expense.amount),
+                    "category": highest_expense.category.name,
+                    "date": highest_expense.created_date.isoformat(),
+                }
+                if highest_expense else None
+            )
+
+            # -----------------------------
+            # 8. TRANSACTIONS PER MONTH
+            # -----------------------------
+            trans_per_month_raw = (
+                db.session.query(
+                    extract("month", Transaction.created_date).label("month"),
+                    func.count(Transaction.id)
+                )
+                .filter(Transaction.user_id == user_id)
+                .group_by("month")
+                .order_by("month")
+                .all()
+            )
+
+            transactions_per_month = [
+                {"month": int(month), "count": count}
+                for month, count in trans_per_month_raw
+            ]
+
+            # -----------------------------
+            # 9. INCOME PER MONTH
+            # -----------------------------
+            income_per_month_raw = (
+                db.session.query(
+                    extract("month", Transaction.created_date).label("month"),
+                    func.sum(Transaction.amount)
+                )
+                .filter(Transaction.user_id == user_id, Transaction.type == "income")
+                .group_by("month")
+                .order_by("month")
+                .all()
+            )
+
+            income_per_month = [
+                {"month": int(month), "amount": float(amount)}
+                for month, amount in income_per_month_raw
+            ]
+
+            # -----------------------------
+            # 10. EXPENSE PER MONTH
+            # -----------------------------
+            expense_per_month_raw = (
+                db.session.query(
+                    extract("month", Transaction.created_date).label("month"),
+                    func.sum(Transaction.amount)
+                )
+                .filter(Transaction.user_id == user_id, Transaction.type == "expense")
+                .group_by("month")
+                .order_by("month")
+                .all()
+            )
+
+            expense_per_month = [
+                {"month": int(month), "amount": float(amount)}
+                for month, amount in expense_per_month_raw
+            ]
 
 
+            # -----------------------------
+            # GROUPED DATA
+            # -----------------------------
+
+            # GROUPED INCOME + EXPENSE PER MONTH
+            income_dict = {int(m): float(a) for m, a in income_per_month_raw}
+            expense_dict = {int(m): float(a) for m, a in expense_per_month_raw}
+
+            all_months = sorted(set(income_dict.keys()) | set(expense_dict.keys()))
+
+            monthly_data = [
+                {
+                    "month": month,
+                    "income": income_dict.get(month, 0.0),
+                    "expense": expense_dict.get(month, 0.0)
+                }
+                for month in all_months
+            ]
+
+            # -----------------------------
+            # RETURN FINAL STRUCTURED JSON
+            # -----------------------------
+            return {
+                "total_income": float(total_income),
+                "total_expense": float(total_expense),
+                "net_difference": float(net_difference),
+
+                "income_by_category": income_by_category,
+                "expense_by_category": expense_by_category,
+
+                "top_3_income": top_3_income,
+                "top_3_expense": top_3_expense,
+
+                "overall_highest_income": overall_highest_income,
+                "overall_highest_expense": overall_highest_expense,
+
+                "transactions_per_month": transactions_per_month,
+                "income_per_month": income_per_month,
+                "expense_per_month": expense_per_month,
+                "monthly_data": monthly_data
+            }
+
+        except SummaryError:
+            # Re-raise custom errors as-is
+            raise
+
+        except Exception as e:
+            # Unknown database or logic failure
+            raise SummaryDatabaseError(f"An unexpected error occurred: {str(e)}")
+        
     # -------------------------------------------------------------------------
+
     @staticmethod
     def _build_period_filter(period_type: str, start: str, end: str, subcategory: Optional[str] = None):
         """Builds SQLAlchemy date/month/year filter."""
-
+        print("Building filter for:", period_type, start, end, subcategory)
         try:
             filters = []
 

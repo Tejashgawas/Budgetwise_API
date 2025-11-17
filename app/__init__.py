@@ -7,10 +7,12 @@ from pydantic import ValidationError
 from app.utils.transaction_exceptions import *
 from app.utils.category_exceptions import *
 from app.utils.summary_exceptions import *
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
 
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
     # Load configuration
     env_name = os.getenv('FLASK_ENV', 'development')
