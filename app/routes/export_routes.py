@@ -3,7 +3,6 @@ from io import BytesIO
 from datetime import datetime, date
 from app.models.transaction import Transaction
 from app.models.user import User
-
 from app.services.export_services import generate_csv_report, generate_pdf_report
 from app.utils.protected import auth_required
 from datetime import datetime, date
@@ -14,6 +13,10 @@ from app.utils.export_exceptions import CSVGenerationError
 
 export_bp = Blueprint("export", __name__)
 
+@export_bp.route('/', methods=['GET'])
+@auth_required
+def test():
+    return jsonify({"message": "Export route is working"}), 200
 
 @export_bp.route('/pdf', methods=['GET'])
 @auth_required
