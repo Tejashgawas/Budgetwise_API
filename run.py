@@ -5,7 +5,7 @@ app = create_app()
 @app.route("/")
 def home():
     app.logger.debug("Logger debug message")
-    return "Welcome to the BudgetWise Application!"
+    return "Welcome to the BudgetWise Application!",200
 
 
 if __name__ == "__main__":

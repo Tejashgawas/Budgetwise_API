@@ -31,14 +31,13 @@ def create_transaction(user_id: int, transaction_data: TransactionCreateSchema):
             category = Category.query.filter_by(id = transaction_data.category_id).first()
         elif transaction_data.category_name:
             category = Category.query.filter_by(
-                name=transaction_data.category_name, type=transaction_data.type
+                name=transaction_data.category_name, type=transaction_data.type,user_id=user_id
             ).first()
             if not category:
                 category = Category(
                     name=transaction_data.category_name, type=transaction_data.type,user_id=user_id
                 )
                 db.session.add(category)
-                db.session.commit()
                 db.session.flush()
         
         if not category:

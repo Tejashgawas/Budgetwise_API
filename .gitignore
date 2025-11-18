@@ -11,6 +11,7 @@ budgetapienv/
 seeding_script.py
 transaction_seed.py
 test_handlers.py
+transactions.csv
 
 # Ignore token and Flask environment file in the CLI folder
 app/Cli/.budgetwise_token
