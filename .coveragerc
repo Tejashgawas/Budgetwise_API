@@ -1,0 +1,21 @@
+[run]
+branch = True
+source = app
+
+[report]
+omit =
+    app/routes/market_routes.py
+    app/services/market_service.py
+    app/routes/extras_routes.py
+    app/services/extras.py
+    app/routes/csv_routes.py
+    app/services/csv_services.py
+    app/models/_init_.py
+    app/utils/*_exceptions.py
+    app/utils/market_format.py 
+    app/routes/export_routes.py
+    app/services/export_services.py
+    
+
+show_missing = True
+skip_covered = True

@@ -171,7 +171,7 @@ def update_transaction(transaction_id: int, data: TransactionUpdateSchema, user_
             id=transaction_id, user_id=user_id
         ).first()
         if not transaction:
-            return None
+            raise TransactionNotFoundError(f"Transaction with ID {transaction_id} not found for user {user_id}.")
 
         if data.amount is not None:
             transaction.amount = round(float(data.amount), 2)
