@@ -11,10 +11,10 @@ from app.routes.export_routes import export_bp
 # Master blueprint (optional grouping)
 api_bp = Blueprint("api", __name__)
 
-# # 🧩 Health check / root route
-# @api_bp.route("/", methods=["GET"])
-# def index():
-#     return jsonify({"message": "BudgetWise API running successfully 🚀"}), 200
+# 🧩 Health check / root route
+@api_bp.route("/health", methods=["GET"])
+def index():
+    return jsonify({"message": "BudgetWise API running successfully 🚀"}), 200
 
 # Register sub-blueprints with prefixes
 api_bp.register_blueprint(auth_bp, url_prefix="/auth")
