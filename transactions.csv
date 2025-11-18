@@ -1,101 +1,100 @@
 category_name,type,amount,description,date
-Food,expense,2724.5,Expense for Food,2025-10-18
-Shopping,expense,3966.63,Expense for Shopping,2025-10-01
-Interest,income,558.66,Income for Interest,2025-10-30
-Bonus,income,2686.54,Income for Bonus,2025-10-02
-Health,expense,1572.42,Expense for Health,2025-10-14
-Investment,income,686.91,Income for Investment,2025-10-06
-Salary,income,3637.88,Income for Salary,2025-10-04
-Freelancing,income,1216.55,Income for Freelancing,2025-10-09
-Interest,income,2394.83,Income for Interest,2025-10-16
-Freelancing,income,3740.37,Income for Freelancing,2025-10-26
-Shopping,expense,745.09,Expense for Shopping,2025-10-04
-Health,expense,3757.48,Expense for Health,2025-10-26
-Bonus,income,111.77,Income for Bonus,2025-10-10
-Entertainment,expense,4472.14,Expense for Entertainment,2025-10-31
-Freelancing,income,503.39,Income for Freelancing,2025-10-17
-Investment,income,1978.53,Income for Investment,2025-10-07
-Bonus,income,3811.61,Income for Bonus,2025-10-11
-Transport,expense,1195.54,Expense for Transport,2025-10-07
-Freelancing,income,3897.09,Income for Freelancing,2025-10-16
-Investment,income,4394.21,Income for Investment,2025-10-18
-Interest,income,3221.32,Income for Interest,2025-10-11
-Transport,expense,4911.29,Expense for Transport,2025-10-03
-Health,expense,3136.66,Expense for Health,2025-10-23
-Investment,income,784.72,Income for Investment,2025-10-02
-Salary,income,2974.55,Income for Salary,2025-10-31
-Bonus,income,1536.39,Income for Bonus,2025-10-12
-Bills,expense,368.86,Expense for Bills,2025-10-13
-Salary,income,1237.01,Income for Salary,2025-10-25
-Freelancing,income,1110.89,Income for Freelancing,2025-10-22
-Bills,expense,2222.18,Expense for Bills,2025-10-16
-Investment,income,1922.84,Income for Investment,2025-10-27
-Interest,income,2035.39,Income for Interest,2025-10-30
-Shopping,expense,4447.26,Expense for Shopping,2025-10-07
-Freelancing,income,4535.45,Income for Freelancing,2025-10-23
-Interest,income,4211.99,Income for Interest,2025-10-24
-Salary,income,988.08,Income for Salary,2025-10-16
-Investment,income,1095.45,Income for Investment,2025-10-27
-Salary,income,1754.31,Income for Salary,2025-10-05
-Shopping,expense,662.64,Expense for Shopping,2025-10-18
-Bills,expense,383.38,Expense for Bills,2025-10-31
-Entertainment,expense,1690.6,Expense for Entertainment,2025-10-15
-Freelancing,income,3474.88,Income for Freelancing,2025-10-31
-Bills,expense,605.12,Expense for Bills,2025-10-24
-Food,expense,60.66,Expense for Food,2025-10-10
-Interest,income,741.9,Income for Interest,2025-10-08
-Bills,expense,3351.34,Expense for Bills,2025-10-18
-Bonus,income,2639.64,Income for Bonus,2025-10-29
-Interest,income,795.36,Income for Interest,2025-10-27
-Bonus,income,4239.18,Income for Bonus,2025-10-04
-Investment,income,351.93,Income for Investment,2025-10-27
-Transport,expense,827.36,Expense for Transport,2025-10-21
-Bonus,income,4608.92,Income for Bonus,2025-10-17
-Entertainment,expense,4596.98,Expense for Entertainment,2025-10-29
-Bonus,income,4470.54,Income for Bonus,2025-10-04
-Bills,expense,958.04,Expense for Bills,2025-10-30
-Bills,expense,3700.23,Expense for Bills,2025-10-06
-Salary,income,500.74,Income for Salary,2025-10-15
-Bonus,income,3724.84,Income for Bonus,2025-10-13
-Food,expense,4627.31,Expense for Food,2025-10-04
-Investment,income,4908.58,Income for Investment,2025-10-18
-Entertainment,expense,1230.93,Expense for Entertainment,2025-10-22
-Salary,income,2371.37,Income for Salary,2025-10-05
-Salary,income,1634.79,Income for Salary,2025-10-01
-Freelancing,income,2090.93,Income for Freelancing,2025-10-29
-Interest,income,4335.16,Income for Interest,2025-10-11
-Investment,income,4392.32,Income for Investment,2025-10-11
-Health,expense,1914.95,Expense for Health,2025-10-12
-Interest,income,3369.2,Income for Interest,2025-10-08
-Salary,income,1017.09,Income for Salary,2025-10-02
-Transport,expense,3652.71,Expense for Transport,2025-10-18
-Shopping,expense,1792.58,Expense for Shopping,2025-10-18
-Health,expense,1678.7,Expense for Health,2025-10-09
-Bills,expense,680.22,Expense for Bills,2025-10-31
-Freelancing,income,327.27,Income for Freelancing,2025-10-08
-Freelancing,income,1496.58,Income for Freelancing,2025-10-08
-Transport,expense,4368.25,Expense for Transport,2025-10-19
-Investment,income,3796.6,Income for Investment,2025-10-13
-Bonus,income,4953.56,Income for Bonus,2025-10-30
-Bills,expense,4401.09,Expense for Bills,2025-10-07
-Entertainment,expense,1538.14,Expense for Entertainment,2025-10-09
-Interest,income,3351.96,Income for Interest,2025-10-25
-Transport,expense,4024.57,Expense for Transport,2025-10-24
-Transport,expense,4933.2,Expense for Transport,2025-10-30
-Interest,income,1377.89,Income for Interest,2025-10-17
-Interest,income,196.43,Income for Interest,2025-10-08
-Health,expense,4954.9,Expense for Health,2025-10-25
-Freelancing,income,4399.96,Income for Freelancing,2025-10-21
-Transport,expense,2534.11,Expense for Transport,2025-10-30
-Bonus,income,4628.43,Income for Bonus,2025-10-27
-Salary,income,1989.43,Income for Salary,2025-10-02
-Freelancing,income,2293.9,Income for Freelancing,2025-10-02
-Shopping,expense,1941.49,Expense for Shopping,2025-10-16
-Transport,expense,736.01,Expense for Transport,2025-10-13
-Bonus,income,261.32,Income for Bonus,2025-10-25
-Interest,income,2780.24,Income for Interest,2025-10-25
-Salary,income,1089.11,Income for Salary,2025-10-23
-Freelancing,income,3257.45,Income for Freelancing,2025-10-22
-Bills,expense,3698.38,Expense for Bills,2025-10-12
-Freelancing,income,3567.44,Income for Freelancing,2025-10-09
-Transport,expense,3011.24,Expense for Transport,2025-10-15
+Salary,income,4250,Monthly Salary,11/1/2025
+Food,expense,892.45,Grocery Shopping,11/2/2025
+Transport,expense,245.8,Fuel Expense,11/3/2025
+Freelancing,income,1850,Web Design Project,11/4/2025
+Entertainment,expense,125.5,Movie Tickets,11/5/2025
+Bills,expense,890,Electricity Bill,11/6/2025
+Interest,income,342.75,Bank Interest,11/7/2025
+Shopping,expense,1245.9,Clothing Purchase,11/8/2025
+Health,expense,550,Medical Checkup,11/9/2025
+Bonus,income,2100,Performance Bonus,11/10/2025
+Food,expense,456.3,Restaurant Dinner,11/11/2025
+Investment,income,1675.4,Stock Dividends,11/12/2025
+Transport,expense,3200,Car Maintenance,11/13/2025
+Bills,expense,1250,Internet & Phone,11/14/2025
+Freelancing,income,2450,Logo Design,11/15/2025
+Entertainment,expense,789.25,Concert Tickets,11/16/2025
+Food,expense,234.6,Fast Food,11/17/2025
+Salary,income,4250,Monthly Salary Part 2,11/18/2025
+Shopping,expense,2340.8,Electronics Purchase,11/19/2025
+Health,expense,1890,Dental Treatment,11/20/2025
+Investment,income,890.5,Mutual Fund Returns,11/21/2025
+Transport,expense,567.9,Public Transport Pass,11/22/2025
+Bonus,income,1500,Client Referral Bonus,11/23/2025
+Bills,expense,2100,Rent Payment,11/24/2025
+Food,expense,678.4,Catering Service,11/25/2025
+Entertainment,expense,450,Gaming Subscription,11/26/2025
+Interest,income,567.8,Fixed Deposit Interest,11/27/2025
+Shopping,expense,890.5,Home Decor,11/28/2025
+Freelancing,income,3200,Mobile App Development,11/29/2025
+Health,expense,345.6,Pharmacy Bills,11/30/2025
+Transport,expense,1234.5,Taxi Services,11/1/2025
+Investment,income,2340,Real Estate Returns,11/3/2025
+Food,expense,567.8,Bakery Items,11/5/2025
+Bills,expense,450,Water Bill,11/7/2025
+Bonus,income,890,Year-end Bonus,11/9/2025
+Shopping,expense,1567.9,Gift Shopping,11/11/2025
+Entertainment,expense,234.5,Streaming Services,11/13/2025
+Salary,income,1200,Part-time Income,11/15/2025
+Health,expense,2340,Health Insurance,11/17/2025
+Transport,expense,890.4,Vehicle Insurance,11/19/2025
+Freelancing,income,1890,Content Writing,11/21/2025
+Food,expense,345.7,Coffee Shop,11/23/2025
+Investment,income,4567.8,Cryptocurrency Gains,11/25/2025
+Bills,expense,678.9,Gas Bill,11/27/2025
+Interest,income,234.5,Savings Account Interest,11/29/2025
+Shopping,expense,3456.7,Furniture Purchase,11/2/2025
+Entertainment,expense,567.8,Theme Park Visit,11/4/2025
+Food,expense,890.3,Party Catering,11/6/2025
+Bonus,income,3400,Project Completion Bonus,11/8/2025
+Transport,expense,234.8,Parking Fees,11/10/2025
+Health,expense,1234.5,Gym Membership,11/12/2025
+Freelancing,income,2890,Consulting Services,11/14/2025
+Bills,expense,890,Credit Card Payment,11/16/2025
+Investment,income,1234.6,Bond Interest,11/18/2025
+Shopping,expense,2345.8,Appliances Purchase,11/20/2025
+Food,expense,456.9,Meal Delivery,11/22/2025
+Entertainment,expense,1234.5,Weekend Getaway,11/24/2025
+Interest,income,678.4,Investment Returns,11/26/2025
+Transport,expense,567.3,Auto Repair,11/28/2025
+Salary,income,2100,Overtime Pay,11/30/2025
+Health,expense,890.5,Physiotherapy,11/1/2025
+Bonus,income,1890,Sales Commission,11/3/2025
+Food,expense,234.8,Lunch at Office,11/5/2025
+Shopping,expense,4567.9,Laptop Purchase,11/7/2025
+Bills,expense,1890,Property Tax,11/9/2025
+Freelancing,income,3456,Video Editing,11/11/2025
+Entertainment,expense,345.6,Sports Event Tickets,11/13/2025
+Investment,income,2890.4,Rental Income,11/15/2025
+Transport,expense,1890.5,Flight Tickets,11/17/2025
+Food,expense,678.9,Dinner Date,11/19/2025
+Interest,income,890.3,Loan Interest Earned,11/21/2025
+Health,expense,2345,Vision Care,11/23/2025
+Shopping,expense,1234.7,Shoes Purchase,11/25/2025
+Bonus,income,2567.8,Holiday Bonus,11/27/2025
+Bills,expense,567.4,Subscription Services,11/29/2025
+Freelancing,income,1567.9,Photography Services,11/2/2025
+Entertainment,expense,890.2,Board Game Purchase,11/4/2025
+Food,expense,345.5,Breakfast at Cafe,11/6/2025
+Transport,expense,2340.6,Train Tickets,11/8/2025
+Investment,income,3890,ETF Returns,11/10/2025
+Salary,income,5000,Bonus Salary,11/12/2025
+Health,expense,567.8,Supplements Purchase,11/14/2025
+Shopping,expense,890.4,Accessories Shopping,11/16/2025
+Bills,expense,1234,HOA Fees,11/18/2025
+Interest,income,456.7,Treasury Bond Interest,11/20/2025
+Food,expense,1234.9,Special Occasion Dining,11/22/2025
+Entertainment,expense,678.5,Virtual Reality Experience,11/24/2025
+Freelancing,income,4234,Brand Strategy,11/26/2025
+Transport,expense,345.8,Bike Repair,11/28/2025
+Bonus,income,1678.9,Referral Bonus,11/30/2025
+Health,expense,4567,Surgery Co-pay,11/1/2025
+Investment,income,2345.8,Options Trading Profit,11/3/2025
+Shopping,expense,567.9,Book Purchase,11/5/2025
+Food,expense,2890.5,Family Gathering,11/7/2025
+Bills,expense,3456,Annual Membership,11/9/2025
+Entertainment,expense,1890.7,Spa Day,11/11/2025
+Transport,expense,678.4,Hotel Parking,11/13/2025
+Interest,income,1234.5,CD Interest,11/15/2025
+Freelancing,income,2678.9,Social Media Management,11/17/2025
