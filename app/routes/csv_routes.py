@@ -1,9 +1,12 @@
-import os
-import uuid
 from flask import Blueprint, Response, jsonify, request
+from app.models import Category, Transaction, User
+from app.schemas.transaction_schemas import TransactionCreateSchema
 from app.services.csv_services import import_transactions_via_route
+from app.services.transaction_service import create_transaction
 from app.utils.protected import auth_required
-
+from app.extensions import db
+from pydantic import ValidationError
+from sqlalchemy import func
 
 csv_bp = Blueprint('csv', __name__)
 
@@ -21,7 +24,7 @@ def import_data():
 
     try:
         # Save uploaded CSV temporarily
-        temp_path = f"/tmp/transactions_{uuid.uuid4().hex}.csv"
+        temp_path = f"transactions.csv"
         file.save(temp_path)
 
         # Call your import logic
@@ -31,8 +34,3 @@ def import_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-    finally:
-        # Delete the file if it exists
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
