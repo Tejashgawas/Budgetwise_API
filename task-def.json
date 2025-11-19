@@ -3,16 +3,23 @@
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
-  "memory": "1024",
+  "memory": "2048",
   "executionRoleArn": "arn:aws:iam::148290398677:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::148290398677:role/ecsTaskRole",
+  "taskRoleArn": "arn:aws:iam::148290398677:role/budgetwise-task-role",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
   "containerDefinitions": [
     {
       "name": "budgetwise-container",
       "image": "IMAGE_PLACEHOLDER",
+      "cpu": 0,
+      "essential": true,
       "portMappings": [
         {
           "containerPort": 5000,
+          "hostPort": 5000,
           "protocol": "tcp"
         }
       ],
@@ -21,7 +28,15 @@
         { "name": "DATABASE_URL", "value": "${DATABASE_URL}" },
         { "name": "SECRET_KEY", "value": "${SECRET_KEY}" }
       ],
-      "essential": true
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/budgetwise-task",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
     }
   ]
 }
