@@ -17,6 +17,9 @@ jobs:
     name: Run Tests & Build Image
     runs-on: ubuntu-latest
 
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
