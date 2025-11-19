@@ -68,7 +68,7 @@ class AuthService:
         """Fetch user details by ID (usually from decoded JWT)."""
         user = User.query.get(user_id)
         if not user:
-            raise UserNotFoundError("User not found.")
+            raise UserNotFoundError("User not found.Please register")
 
         if user.created_at:
             formatted_date = user.created_at.strftime("%B %d, %Y")  # e.g., "October 29, 2025 at 10:23 AM"
