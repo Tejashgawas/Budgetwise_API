@@ -12,7 +12,6 @@ env:
   CONTAINER_NAME: budgetwise-container
 
 jobs:
-
   CI:
     name: Run Tests & Build Image
     runs-on: ubuntu-latest
