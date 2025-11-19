@@ -59,7 +59,9 @@ jobs:
           docker build -t $ECR_URI:$IMAGE_TAG .
           docker push $ECR_URI:$IMAGE_TAG
 
+          # Write output using both methods for reliability
           echo "image=$ECR_URI:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "::set-output name=image::$ECR_URI:$IMAGE_TAG"
 
 
   CD:
@@ -82,16 +84,16 @@ jobs:
         run: |
           sed -i "s|\${DATABASE_URL}|${{ secrets.DATABASE_URL }}|g" task-def.json
           sed -i "s|\${SECRET_KEY}|${{ secrets.SECRET_KEY }}|g" task-def.json
+        
+      - name: Debug image output
+        run: echo "CI image output = ${{ needs.CI.outputs.image }}"
 
       - name: Inject Image into Task Definition
         run: |
-          IMAGE=${{ needs.CI.outputs.image }}
+          IMAGE="${{ needs.CI.outputs.image }}"
+          echo "Using image: $IMAGE"
           sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" task-def.json
-
-      - name: Debug image output
-        run: |
-          echo "CI Output Image: ${{ needs.CI.outputs.image }}"
-
+          
       - name: Register New Task Definition
         id: register-task
         run: |
