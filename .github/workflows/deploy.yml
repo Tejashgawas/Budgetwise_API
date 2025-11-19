@@ -85,8 +85,12 @@ jobs:
 
       - name: Inject Image into Task Definition
         run: |
-          IMAGE="${{ needs.CI.outputs.image }}"
+          IMAGE=${{ needs.CI.outputs.image }}
           sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" task-def.json
+
+      - name: Debug image output
+        run: |
+          echo "CI Output Image: ${{ needs.CI.outputs.image }}"
 
       - name: Register New Task Definition
         id: register-task
