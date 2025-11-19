@@ -91,6 +91,7 @@ jobs:
           echo "===== CD RECEIVED IMAGE ====="
           echo "${{ needs.CI.outputs.image }}"
           echo "=============================="
+        
 
       # STEP 2: Replace secrets
       - name: Inject DB & Secrets
