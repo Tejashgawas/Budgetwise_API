@@ -1,0 +1,27 @@
+{
+  "family": "budgetwise-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::148290398677:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::148290398677:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "budgetwise-container",
+      "image": "<IMAGE_URI>",
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "FLASK_ENV", "value": "production" },
+        { "name": "DATABASE_URL", "value": "${DATABASE_URL}" },
+        { "name": "SECRET_KEY", "value": "${SECRET_KEY}" }
+      ],
+      "essential": true
+    }
+  ]
+}
