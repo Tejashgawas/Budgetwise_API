@@ -9,7 +9,6 @@ env:
   ECR_REPO: budgetwise-backend
   ECS_CLUSTER: budgetwise_cluster
   ECS_SERVICE: budgetwise-task-service
-  CONTAINER_NAME: budgetwise-container
 
 jobs:
   CI:
@@ -17,19 +16,19 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      image: ${{ steps.build-image.outputs.image }}
+      tag: ${{ steps.build-image.outputs.tag }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-      
-      - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Install Dependencies
         run: |
@@ -54,19 +53,17 @@ jobs:
         id: build-image
         run: |
           IMAGE_TAG=${GITHUB_SHA}
-          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}
+          ECR_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}"
 
-          echo "Building image: $ECR_URI:$IMAGE_TAG"
+          echo "Using ECR URI: $ECR_URI"
 
           docker build -t $ECR_URI:$IMAGE_TAG .
           docker push $ECR_URI:$IMAGE_TAG
 
-          echo "Setting CI output..."
-          echo "image=$ECR_URI:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
-          echo "===== CI DEBUG OUTPUT ====="
-          cat $GITHUB_OUTPUT || true
-          echo "==========================="
+      - name: Debug TAG
+        run: echo "Generated TAG = ${{ steps.build-image.outputs.tag }}"
 
 
   CD:
@@ -85,58 +82,47 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # STEP 1: Show raw CI output image
-      - name: Debug — Check CI Output Image
-        run: |
-          echo "===== CD RECEIVED IMAGE ====="
-          echo "${{ needs.CI.outputs.image }}"
-          echo "=============================="
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # STEP 2: Replace secrets
-      - name: Inject DB & Secrets
+      - name: Inject DB & Secret Values
         run: |
           sed -i "s|\${DATABASE_URL}|${{ secrets.DATABASE_URL }}|g" task-def.json
           sed -i "s|\${SECRET_KEY}|${{ secrets.SECRET_KEY }}|g" task-def.json
 
-      # STEP 3: Inject Image
+      - name: Build Full Image URI (Using TAG + Registry URL)
+        run: |
+          TAG="${{ needs.CI.outputs.tag }}"
+          ECR_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}"
+          IMAGE="$ECR_URI:$TAG"
+
+          # 🔍 Debug logs
+          echo "---- DEBUG: IMAGE INFO ----"
+          echo "TAG: $TAG"
+          echo "ECR_URI: $ECR_URI"
+          echo "Final IMAGE: $IMAGE"
+          echo "---------------------------"
+
+          # Save to environment for next steps
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
       - name: Inject Image into Task Definition
         run: |
-          IMAGE="${{ needs.CI.outputs.image }}"
-          echo "Using image: $IMAGE"
+          echo "Injecting image: ${{ env.IMAGE }}"
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" task-def.json
 
-          sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" task-def.json
-
-          echo "===== TASK DEF AFTER IMAGE INJECTION ====="
-          cat task-def.json
-          echo "=========================================="
-
-      # STEP 4: Validate JSON (critical)
-      - name: Validate final JSON before registering
-        run: |
-          echo "===== VALIDATING JSON ====="
-          cat task-def.json | jq . >/dev/null
-          echo "JSON VALID! ================="
-
-      # STEP 5: Register task
       - name: Register New Task Definition
         id: register-task
         run: |
-          echo "Registering task..."
           aws ecs register-task-definition \
             --cli-input-json file://task-def.json \
             --region ${{ env.AWS_REGION }} \
             > task_output.json
 
-          echo "===== TASK OUTPUT ====="
-          cat task_output.json
-          echo "========================"
-
-      # STEP 6: Deploy
       - name: Deploy to ECS
         run: |
           TASK_DEF_ARN=$(jq -r '.taskDefinition.taskDefinitionArn' task_output.json)
-
-          echo "Deploying task definition: $TASK_DEF_ARN"
 
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
@@ -144,5 +130,3 @@ jobs:
             --task-definition "$TASK_DEF_ARN" \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
-
-          echo "Deployment triggered successfully!"
