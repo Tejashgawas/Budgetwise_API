@@ -12,7 +12,14 @@ from flask_cors import CORS
 def create_app():
     app = Flask(__name__)
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": [
+            "https://budgetwise.fun",
+            "https://www.budgetwise.fun",
+            "http://localhost:8080"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE"], 
+        "allow_headers": ["Content-Type", "Authorization"]
+    }}, supports_credentials=True)
 
     # Load configuration
     env_name = os.getenv('FLASK_ENV', 'development')
