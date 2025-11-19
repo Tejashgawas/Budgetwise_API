@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "budgetwise-container",
-      "image": "IMAGE_PLACEHOLDER",
+      "image": "<IMAGE_URI>",
       "portMappings": [
         {
           "containerPort": 5000,
